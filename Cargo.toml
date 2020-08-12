@@ -1,0 +1,21 @@
+[package]
+name = "shanten"
+version = "0.1.0"
+authors = ["rick0000 <rickdev0000@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.pyo3]
+version = "0.11.1"
+features = ["extension-module"]
+
+[dependencies]
+fnv = "1.0.7"
+failure = "0.1.8"
+lazy_static = "1.4.0"
+
+
+[lib]
+name = "shanten"
+crate-type = ["cdylib"]
