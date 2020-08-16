@@ -60,21 +60,22 @@ fn calc_shanten_kokushi(tehai: &[usize; 34]) -> i8 {
 }
 
 fn calc_shanten_chitoitsu(tehai: &[usize; 34]) -> i8 {
-    let mut shanten = SHANTEN_MAX_CHITOITSU;
     let mut syu_num = 0;
+    let mut toitsu = 0;
 
     for i in 0..tehai.len() {
         if tehai[i] >= 1{
             syu_num += 1;
             if tehai[i] >= 2{
-                shanten -= 1;
+                toitsu += 1;
             }
         }
     }
-    if SYU_NUM_CHITOITSU - syu_num > shanten {
-        shanten = SYU_NUM_CHITOITSU - syu_num;
-    }
-    shanten
+    if syu_num < SYU_NUM_CHITOITSU {
+        SHANTEN_MAX_CHITOITSU - toitsu + (7-syu_num)
+    } else {
+        SHANTEN_MAX_CHITOITSU - toitsu
+    }    
 }
 
 fn calc_shanten_normal(tehai: &[usize; 34], furo_num: i8) -> i8 {
@@ -165,6 +166,47 @@ mod tests {
             0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,
-            ]);
+            ], 1);
+    }
+
+    #[test]
+    fn chitoitsu_calc_works() {
+        let s = calc_all(&[
+            2,0,2,0,2,0,2,0,0,
+            0,0,0,2,0,2,0,2,0,
+            0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,
+            ], 0);
+
+        assert_eq!(3, s[0]);
+        assert_eq!(11, s[1]);
+        assert_eq!(-1, s[2]);
+    }
+
+    #[test]
+    fn chitoitsu_4_calc_works() {
+        let s = calc_all(&[
+            2,0,0,0,2,0,2,0,0,
+            0,0,0,2,0,0,0,4,0,
+            0,0,0,0,0,0,0,0,2,
+            0,0,0,0,0,0,0,
+            ], 0);
+
+        assert_eq!(2, s[0]);
+        assert_eq!(10, s[1]);
+        assert_eq!(1, s[2]);
+    }
+    #[test]
+    fn chitoitsu_many_type_calc_works() {
+        let s = calc_all(&[
+            2,0,0,0,2,0,2,0,0,
+            0,0,0,2,0,0,0,3,0,
+            0,0,0,0,0,1,0,0,2,
+            0,0,0,0,0,0,0,
+            ], 0);
+
+        assert_eq!(2, s[0]);
+        assert_eq!(10, s[1]);
+        assert_eq!(0, s[2]);
     }
 }
