@@ -160,6 +160,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn calc_works1() {
+        let s = calc(&[
+            0, 1, 1, 1, 1, 1, 1, 2, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 
+            0, 3, 0, 0, 0, 0, 0
+            ], 0);
+        assert_eq!(s,-1);
+    }
+
+
+    #[test]
     fn calc_works() {
         calc(&[
             4,4,4,2,0,0,0,0,0,

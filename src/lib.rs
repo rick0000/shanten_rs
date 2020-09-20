@@ -6,12 +6,16 @@ use pyo3::types::PyList;
 mod shanten_analysis;
 mod mentsu_tartsu_num;
 mod resource;
+mod tenpai_analysis;
+mod dfs;
 
 #[macro_use]
 extern crate lazy_static;
 
 pub use crate::shanten_analysis::calc;
 pub use crate::shanten_analysis::calc_all;
+
+
 
 
 

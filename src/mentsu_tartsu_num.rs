@@ -4,9 +4,7 @@ use crate::resource::constants;
 extern crate failure;
 use failure::Error;
 use fnv::FnvHashMap;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-const MTN_ARRAY_LENGTH:usize = 5*5*5*5*5*5*5*5*5;
+
 const INDEX_CACHE:[usize;9] = [
     1,
     5,
@@ -58,8 +56,8 @@ impl MentsuTartsuNumCalclator{
             
             let splited_v0s = v[0].chars().collect::<Vec<char>>();
             // println!("{:?}", splited_v0s);
-            let mut key = 0;
-            let mut count = 0;
+            // let mut key = 0;
+            // let mut count = 0;
             let mut keys :[usize;9] = [0;9];
             
             for (i, splited_v0) in splited_v0s.iter().enumerate() {
@@ -113,22 +111,21 @@ impl MentsuTartsuNumCalclator{
     }
 
     pub fn get_index(num:&[usize;9]) -> usize{
-        (
-            INDEX_CACHE[0] * num[0] +
-            INDEX_CACHE[1] * num[1] +
-            INDEX_CACHE[2] * num[2] +
-            INDEX_CACHE[3] * num[3] +
-            INDEX_CACHE[4] * num[4] +
-            INDEX_CACHE[5] * num[5] +
-            INDEX_CACHE[6] * num[6] +
-            INDEX_CACHE[7] * num[7] +
-            INDEX_CACHE[8] * num[8]
-        )
+        INDEX_CACHE[0] * num[0] +
+        INDEX_CACHE[1] * num[1] +
+        INDEX_CACHE[2] * num[2] +
+        INDEX_CACHE[3] * num[3] +
+        INDEX_CACHE[4] * num[4] +
+        INDEX_CACHE[5] * num[5] +
+        INDEX_CACHE[6] * num[6] +
+        INDEX_CACHE[7] * num[7] +
+        INDEX_CACHE[8] * num[8]
+    
     }
     
 
-    pub fn len(&self) -> usize{
-        self.mentsu_tartsu_num_hash.len()
-    }
+    // pub fn len(&self) -> usize{
+    //     self.mentsu_tartsu_num_hash.len()
+    // }
 }
 
