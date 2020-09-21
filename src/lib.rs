@@ -8,6 +8,9 @@ mod mentsu_tartsu_num;
 mod resource;
 mod tenpai_analysis;
 mod dfs;
+mod pai;
+mod hora;
+mod furo;
 
 #[macro_use]
 extern crate lazy_static;
