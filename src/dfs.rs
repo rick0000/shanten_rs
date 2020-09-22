@@ -5,6 +5,47 @@ use crate::shanten_analysis::calc;
 use crate::furo::Furo;
 use std::fmt;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum MentsuType {
+    Ansyun,
+    Minsyun,
+    Anko,
+    Minko,
+    Ankantsu,
+    Minkantsu,
+    Head,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Mentsu {
+    mentsu_type:MentsuType,
+    id:usize
+}
+impl Mentsu {
+    pub fn new(mentsu_type:MentsuType, id:usize) -> Self {
+        Self {
+            mentsu_type,
+            id
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct HoraPattern {
+    head:Option<Mentsu>,
+    mentsus:Vec<Mentsu>,
+}
+impl HoraPattern {
+    pub fn new() -> Self {
+        Self {
+            head:None,
+            mentsus:vec!(),
+        }
+    }
+}
+
+
+
 #[derive(Clone)]
 pub struct DfsCandidate {
     tehai_nums:[usize;34],
@@ -119,6 +160,9 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
                         if e.tehai_nums[j] == 4 {
                             continue
                         }
+                        if i == j {
+                            continue
+                        }
                         
                         let mut new_tehai_nums = e.tehai_nums.clone();
                         new_tehai_nums[i] -= 1;
@@ -173,7 +217,7 @@ fn dfs_chunk(tehai: &[usize; 34], depth:i8) {
 
     let free_pai_num = depth % 3;
 
-    let patterns = cut_mentsu(tehai, free_pai_num);
+    
 
 
     // パターンに加えて、追加牌を定義できる。
@@ -183,32 +227,103 @@ fn dfs_chunk(tehai: &[usize; 34], depth:i8) {
     // ヘッド作成パターンの列挙
     // 追加分%3枚でメンツができるパターンを列挙
 
-    println!("{}", free_pai_num)
+    println!("{}", free_pai_num);
 }
 
-fn cut_mentsu(tehai: &[usize; 34], free_pai_num:i8) {
+fn cut_mentsu(
+        mut tehai: [usize; 34], 
+        free_pai_num:i8, 
+        head_num:i8, 
+        mentsu_num:i8, 
+        mut current_hora_pattern:HoraPattern, 
+        mut result_hora_patterns:Vec<HoraPattern>,
+        start_id:usize,
+    ) -> Vec<HoraPattern>{
     assert!(free_pai_num < 3);
-    // cut syuntsu
-    for i in 0..34 {
+    
+    // if complete, append result and return
+    // this path is no mentsu
+    // check rest_pai + free_pai can make mentsu.
+    let rest_pai_num:usize = tehai.iter().sum();
+    
+    if rest_pai_num == 0 {
+        println!("rest_pai_num:{:?}",rest_pai_num);
+        result_hora_patterns.push(
+            current_hora_pattern
+        );
+        println!("result_hora_patterns:{:?}",result_hora_patterns);
+        return result_hora_patterns
+    }
 
+    // cut head
+    if let None = current_hora_pattern.head {
+        for i in start_id..34 {
+            if tehai[i] >= 2 {
+                tehai[i] -= 2;
+                current_hora_pattern.head = Some(Mentsu::new(
+                    MentsuType::Head,
+                    i
+                ));
+                println!("head found:{:?}",i);
+                result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), 0);
+                tehai[i] += 2;
+            }
+        }
+    }
+    
+    // cut syuntsu
+    for i in start_id..27 {
+        if tehai[i] >= 1 && tehai[i+1] >= 1 && tehai[i+2] >= 1 {
+            tehai[i] -= 1;
+            tehai[i+1] -= 1;
+            tehai[i+2] -= 1;
+            let new_mentsu = Mentsu::new(MentsuType::Ansyun, i);
+            current_hora_pattern.mentsus.push(new_mentsu);
+            result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
+            current_hora_pattern.mentsus.pop();
+            tehai[i] += 1;
+            tehai[i+1] += 1;
+            tehai[i+2] += 1;
+        }
     }
 
     // add kotsu
-    for i in 0..34 {
+    for i in start_id..34 {
+        if tehai[i] >= 3 {
 
+            tehai[i] -= 3;
+            let new_mentsu = Mentsu::new(MentsuType::Anko, i);
+            current_hora_pattern.mentsus.push(new_mentsu);
+            result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
+            current_hora_pattern.mentsus.pop();
+            tehai[i] += 3;
+        }
     }
+
+    // if need head and mentsu can be builded, append hora pattern
+    if free_pai_num > 0 {
+        // let mentsu = search_mentsu(tehai, free_pai_num, );
+    }
+
+
+    result_hora_patterns
 }
+
+
+
+
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{Duration, Instant};
 
     fn get_tehai() -> [usize; 34] {
         let tehai:[usize; 34] = [
-            1, 1, 1, 1, 1, 1, 1, 1, 3,
-            0, 0, 2, 0, 0, 0, 0, 0, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 0, 1, 2, 2, 0, 2,
+            1, 1, 1, 0, 0, 0, 1, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 1,
             0, 0, 0, 0, 0, 0, 0,
         ];
         tehai
@@ -216,21 +331,30 @@ mod tests {
 
     #[test]
     fn calc_dfs_works() {
-        let tehai:[usize; 34] = [
-            1, 1, 1, 1, 1, 1, 1, 1, 3,
-            0, 0, 2, 0, 0, 0, 0, 0, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0,
-        ];
+        let tehai:[usize; 34] = get_tehai();
+        let shanten = calc(&tehai, 0);
+        println!("initial shanten:{}", shanten);
+        let start = Instant::now();
         let furos = vec!();
-        let a = calc_dfs_14(&tehai, furos, 2);
+        let a = calc_dfs_14(&tehai, furos, 3);
         assert!(a != 1);
+        let end = start.elapsed();
+        println!("{}.{:03}秒経過しました。", end.as_secs(), end.subsec_nanos() / 1_000_000);
     }
 
-    #[test]
+    // #[test]
     fn calc_chunk_dfs() {
         let tehai = get_tehai();
-        dfs_chunk(&tehai, 3);
+        dfs_chunk(&tehai, 1);
+    }
+
+    // #[test]
+    fn test_cut_mentsu() {
+        let tehai = get_tehai();
+        let mut current_hora_pattern = HoraPattern::new();
+        let mut result_hora_patterns = Vec::new();
+        let result = cut_mentsu(tehai, 0, 0, 0, current_hora_pattern, result_hora_patterns, 0);
+        println!("test_cut_mentsu result:{:?}", result);
     }
 
 }
