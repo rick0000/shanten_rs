@@ -111,10 +111,11 @@ impl fmt::Debug for DfsCandidate {
 
 fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
     let mut nodes = Vec::new();
+    let mut horas = Vec::new();
     
     let shanten = calc(&tehai, furos.len() as i8);
     let hora_shanten = -1;
-    // let mut horas = Vec::new();
+    
     let candidate = DfsCandidate::new(
         tehai.clone(),
         furos.clone(),
@@ -144,6 +145,7 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
                 // 残り探索深さがtargetシャンテンに到達不可能になったら探索打ち切り
                 continue
             } else if shanten == -1 {
+                horas.push(e);
                 // 和了したらそれ以降は展開しない
                 // println!("{:?}", e);
 
@@ -193,6 +195,7 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
     }
 
     println!("node_count:{}", node_count);
+    println!("hora_count:{}", horas.len());
     let i8mod = (node_count % 128) as i8;
     i8mod
 }
@@ -321,9 +324,9 @@ mod tests {
 
     fn get_tehai() -> [usize; 34] {
         let tehai:[usize; 34] = [
-            0, 0, 1, 0, 1, 2, 2, 0, 2,
-            1, 1, 1, 0, 0, 0, 1, 0, 0,
-            0, 0, 0, 0, 0, 1, 0, 0, 1,
+            0, 1, 0, 1, 1, 2, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0,
         ];
         tehai
