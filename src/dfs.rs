@@ -4,45 +4,10 @@
 use crate::shanten_analysis::calc;
 use crate::furo::Furo;
 use std::fmt;
+use crate::hora::HoraPattern;
+use crate::hora::MentsuType;
+use crate::hora::Mentsu;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum MentsuType {
-    Ansyun,
-    Minsyun,
-    Anko,
-    Minko,
-    Ankantsu,
-    Minkantsu,
-    Head,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Mentsu {
-    mentsu_type:MentsuType,
-    id:usize
-}
-impl Mentsu {
-    pub fn new(mentsu_type:MentsuType, id:usize) -> Self {
-        Self {
-            mentsu_type,
-            id
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct HoraPattern {
-    head:Option<Mentsu>,
-    mentsus:Vec<Mentsu>,
-}
-impl HoraPattern {
-    pub fn new() -> Self {
-        Self {
-            head:None,
-            mentsus:vec!(),
-        }
-    }
-}
 
 
 
@@ -100,15 +65,16 @@ impl fmt::Debug for DfsCandidate {
             let n_str: &str = &self.tehai_nums[i].to_string();
             z = z + n_str;            
         }
-        write!(f, "tehais:{},{},{},{}\nfuros:{:?}\ntarget depth:{}\ncurrent depth:{}", 
+        write!(f, "tehais:{},{},{},{}\nfuros:{:?}\ntarget depth:{}\ncurrent depth:{}\ncurrent shanten:{}", 
             m, p, s, z, 
             self.furos, 
             self.target_depth,
             self.current_depth,
+            self.current_shanten,
         )
     }
 }
-
+    
 fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
     let mut nodes = Vec::new();
     let mut horas = Vec::new();
@@ -137,58 +103,55 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
             let shanten = e.current_shanten;
             // println!("shanten:{:?}", shanten);
             
-
-            if e.current_depth >= e.target_depth {
-                // 深さが指定深さに到達したらそれ以降は展開しない
-                continue
-            } else if e.current_shanten - e.target_shanten > e.target_depth - e.current_depth {
-                // 残り探索深さがtargetシャンテンに到達不可能になったら探索打ち切り
-                continue
-            } else if shanten == -1 {
+            if shanten == -1 {
                 horas.push(e);
                 // 和了したらそれ以降は展開しない
                 // println!("{:?}", e);
 
                 // points, yakus = calc_horas();
                 continue
-            } else {
-                // 手牌を変更する
-                for i in 0..34 { // 減少
-                    if e.tehai_nums[i] == 0 {
-                        continue
-                    }
-
-                    for j in 0..34 { // 増加
-                        if e.tehai_nums[j] == 4 {
-                            continue
-                        }
-                        if i == j {
-                            continue
-                        }
-                        
-                        let mut new_tehai_nums = e.tehai_nums.clone();
-                        new_tehai_nums[i] -= 1;
-                        new_tehai_nums[j] += 1;
-                        
-                        let new_shanten = calc(&new_tehai_nums, e.furos.len() as i8);
-                        if new_shanten > shanten {
-                            continue
-                        }
-                        // println!("{},{}",i,j);
-
-                        let new_candidate = DfsCandidate::new(
-                            new_tehai_nums,
-                            furos.clone(),
-                            e.target_shanten,
-                            new_shanten,
-                            e.target_depth,
-                            e.current_depth + 1
-                        );
-                        nodes.push(new_candidate);
-                        node_count += 1;
-                    }
+            } else if e.current_depth >= e.target_depth {
+                // 深さが指定深さに到達したらそれ以降は展開しない
+                continue
+            } else if e.current_shanten - e.target_shanten > e.target_depth - e.current_depth {
+                // 残り探索深さがtargetシャンテンに到達不可能になったら探索打ち切り
+                continue
+            }
+            // 手牌を変更する
+            for i in 0..34 { // 減少
+                if e.tehai_nums[i] == 0 {
+                    continue
                 }
 
+                for j in 0..34 { // 増加
+                    if e.tehai_nums[j] == 4 {
+                        continue
+                    }
+                    if i == j {
+                        continue
+                    }
+                    
+                    let mut new_tehai_nums = e.tehai_nums.clone();
+                    new_tehai_nums[i] -= 1;
+                    new_tehai_nums[j] += 1;
+                    
+                    let new_shanten = calc(&new_tehai_nums, e.furos.len() as i8);
+                    if new_shanten > shanten {
+                        continue
+                    }
+                    // println!("{},{}",i,j);
+
+                    let new_candidate = DfsCandidate::new(
+                        new_tehai_nums,
+                        furos.clone(),
+                        e.target_shanten,
+                        new_shanten,
+                        e.target_depth,
+                        e.current_depth + 1
+                    );
+                    nodes.push(new_candidate);
+                    node_count += 1;
+                }
             }
 
         }
@@ -196,6 +159,9 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
 
     println!("node_count:{}", node_count);
     println!("hora_count:{}", horas.len());
+    // for h in horas.iter() {
+    //     println!("{:?}",h);
+    // }
     let i8mod = (node_count % 128) as i8;
     i8mod
 }
@@ -339,7 +305,7 @@ mod tests {
         println!("initial shanten:{}", shanten);
         let start = Instant::now();
         let furos = vec!();
-        let a = calc_dfs_14(&tehai, furos, 3);
+        let a = calc_dfs_14(&tehai, furos, 2);
         assert!(a != 1);
         let end = start.elapsed();
         println!("{}.{:03}秒経過しました。", end.as_secs(), end.subsec_nanos() / 1_000_000);
