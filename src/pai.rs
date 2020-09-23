@@ -7,7 +7,7 @@ pub enum PaiType {
     UNKNOWN,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pai {
     id: i8,
     number: i8,

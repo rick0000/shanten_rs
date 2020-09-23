@@ -11,6 +11,7 @@ mod dfs;
 mod pai;
 mod hora;
 mod furo;
+mod yaku;
 
 #[macro_use]
 extern crate lazy_static;

@@ -6,9 +6,8 @@ use crate::furo::Furo;
 use std::fmt;
 use crate::hora::HoraPattern;
 use crate::hora::MentsuType;
+use crate::hora::VisibilityType;
 use crate::hora::Mentsu;
-
-
 
 
 #[derive(Clone)]
@@ -231,6 +230,7 @@ fn cut_mentsu(
                 tehai[i] -= 2;
                 current_hora_pattern.head = Some(Mentsu::new(
                     MentsuType::Head,
+                    VisibilityType::An,
                     i
                 ));
                 println!("head found:{:?}",i);
@@ -246,7 +246,7 @@ fn cut_mentsu(
             tehai[i] -= 1;
             tehai[i+1] -= 1;
             tehai[i+2] -= 1;
-            let new_mentsu = Mentsu::new(MentsuType::Ansyun, i);
+            let new_mentsu = Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, i);
             current_hora_pattern.mentsus.push(new_mentsu);
             result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
             current_hora_pattern.mentsus.pop();
@@ -261,7 +261,7 @@ fn cut_mentsu(
         if tehai[i] >= 3 {
 
             tehai[i] -= 3;
-            let new_mentsu = Mentsu::new(MentsuType::Anko, i);
+            let new_mentsu = Mentsu::new(MentsuType::Kotsu, VisibilityType::An ,i);
             current_hora_pattern.mentsus.push(new_mentsu);
             result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
             current_hora_pattern.mentsus.pop();
@@ -286,7 +286,7 @@ fn cut_mentsu(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::{Duration, Instant};
+    use std::time::{Instant};
 
     fn get_tehai() -> [usize; 34] {
         let tehai:[usize; 34] = [
