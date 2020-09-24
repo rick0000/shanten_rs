@@ -3,13 +3,13 @@
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Yaku {
-    name:YakuName,
-    fan:i8,
+    pub yaku_name:YakuName,
+    pub fan:i8,
 }
 impl Yaku {
-    pub fn new(name:YakuName, fan:i8) -> Self {
+    pub fn new(yaku_name:YakuName, fan:i8) -> Self {
         Self {
-            name,
+            yaku_name,
             fan,
         }
     }

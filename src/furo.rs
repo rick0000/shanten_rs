@@ -9,14 +9,11 @@ pub enum FuroType {
     DAIMINKAN,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Furo {
-    furo_type: FuroType,
-    taken: Pai,
-    consumed0: Pai,
-    consumed1: Pai,
-    consumed2: Pai,
-    consumed3: Pai,
-    min_id: i8,
+    pub furo_type: FuroType,
+    pub taken: Pai,
+    pub consumed: Vec<Pai>,
+    pub min_id: i8,
 }
 

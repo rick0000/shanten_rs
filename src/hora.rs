@@ -1,5 +1,6 @@
 use crate::pai::Pai;
-use crate::furo::Furo;
+use crate::furo::{Furo, FuroType};
+use crate::yaku::{Yaku, YakuName};
 
 
 pub enum WaitingType {
@@ -41,19 +42,7 @@ impl Mentsu {
 
 
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Yaku {
-    name:String,
-    fan:i8,
-}
-impl Yaku {
-    pub fn new(name:String, fan:i8) -> Self {
-        Self {
-            name,
-            fan,
-        }
-    }
-}
+
 
 
 #[derive(Clone, Debug, PartialEq)]
@@ -113,11 +102,13 @@ pub struct HoraYakuInformation {
     haitei:bool,
     bakaze:Pai,
     jikaze:Pai,
+    
 }
 
 #[derive(Clone, Debug)]
 pub struct HoraCandidate {
     taken:Pai,
+    furos:Vec<Furo>,
     yaku_info:HoraYakuInformation,
     combination:Combination,
     taken_index:i8,
@@ -127,13 +118,16 @@ pub struct HoraCandidate {
 impl HoraCandidate {
     pub fn new(
         taken:Pai,
+        furos:Vec<Furo>,
         yaku_info:HoraYakuInformation,
         combination:Combination,
         taken_index:i8,
     ) -> Self {
         
+        
         let mut initialized = Self {
             taken,
+            furos,
             yaku_info,
             combination,
             taken_index,
@@ -143,14 +137,31 @@ impl HoraCandidate {
         initialized
     }
 
-    pub fn calc_yakus(&self) {
+    fn calc_yakus(&mut self) {
+        let menzen = self.furos.iter().filter(|e| e.furo_type != FuroType::ANKAN).count() == 0;
+
         if self.yaku_info.first_turn && 
             self.yaku_info.hora_type == HoraType::Tsumo && 
             self.yaku_info.oya {
-                
+                self.add_yaku(YakuName::Tenho, 100, 0, menzen);
+            }
+        if self.yaku_info.first_turn && 
+            self.yaku_info.hora_type == HoraType::Tsumo &&
+            self.yaku_info.oya == false {
+                self.add_yaku(YakuName::Chiho, 100, 0, menzen);
             }
     }
 
+    fn add_yaku(&mut self, yaku_name:YakuName, menzen_fan:i8, kui_fan:i8, menzen:bool) {
+        if menzen {
+            self.yakus.push(Yaku::new(yaku_name, menzen_fan));
+        } else {
+            self.yakus.push(Yaku::new(yaku_name, kui_fan));
+        }
+    }
+    fn delete_yaku(&mut self, yaku_name:YakuName){
+        self.yakus.retain(|e| e.yaku_name != yaku_name);
+    }
     
 }
 
@@ -238,8 +249,10 @@ mod test {
     fn get_hora_candidate(taken:Pai, combination:Combination) -> HoraCandidate {
         let hora_yaku_information = get_hora_yaku_information();
         let taken_index = 0;
+        let furos = vec!();
         let candidate = HoraCandidate::new(
             taken,
+            furos,            
             hora_yaku_information,
             combination,
             taken_index,
