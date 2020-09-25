@@ -1,33 +1,33 @@
-//! 
-/// # ある手牌から深さ優先探索を行い和了点数が到達可能かを判定する
-/// 
-use crate::shanten_analysis::calc;
+//!
 use crate::furo::Furo;
-use std::fmt;
 use crate::hora::HoraPattern;
+use crate::hora::Mentsu;
 use crate::hora::MentsuType;
 use crate::hora::VisibilityType;
-use crate::hora::Mentsu;
-
+use crate::pai::Pai;
+/// # ある手牌から深さ優先探索を行い和了点数が到達可能かを判定する
+///
+use crate::shanten_analysis::calc;
+use std::fmt;
 
 #[derive(Clone)]
 pub struct DfsCandidate {
-    tehai_nums:[usize;34],
-    furos:Vec<Furo>,
-    target_shanten:i8,
-    current_shanten:i8,
-    target_depth:i8,
-    current_depth:i8,
+    tehai_nums: [usize; 34],
+    furos: Vec<Furo>,
+    target_shanten: i8,
+    current_shanten: i8,
+    target_depth: i8,
+    current_depth: i8,
 }
 
 impl DfsCandidate {
     pub fn new(
-        tehai_nums:[usize;34], 
-        furos:Vec<Furo>, 
-        target_shanten:i8,
-        current_shanten:i8, 
-        target_depth:i8,
-        current_depth:i8,
+        tehai_nums: [usize; 34],
+        furos: Vec<Furo>,
+        target_shanten: i8,
+        current_shanten: i8,
+        target_depth: i8,
+        current_depth: i8,
     ) -> Self {
         Self {
             tehai_nums: tehai_nums.clone(),
@@ -37,57 +37,55 @@ impl DfsCandidate {
             target_depth,
             current_depth,
         }
-    }  
+    }
 }
 
 impl fmt::Debug for DfsCandidate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut m:String = "".to_string();
+        let mut m: String = "".to_string();
         for i in 0..9 {
             let n_str: &str = &self.tehai_nums[i].to_string();
-            m = m + n_str;            
+            m = m + n_str;
         }
-        let mut p:String = "".to_string();
+        let mut p: String = "".to_string();
         for i in 9..18 {
             let n_str: &str = &self.tehai_nums[i].to_string();
-            p = p + n_str;            
+            p = p + n_str;
         }
 
-        let mut s:String = "".to_string();
+        let mut s: String = "".to_string();
         for i in 18..27 {
             let n_str: &str = &self.tehai_nums[i].to_string();
-            s = s + n_str;            
+            s = s + n_str;
         }
 
-        let mut z:String = "".to_string();
+        let mut z: String = "".to_string();
         for i in 27..34 {
             let n_str: &str = &self.tehai_nums[i].to_string();
-            z = z + n_str;            
+            z = z + n_str;
         }
-        write!(f, "tehais:{},{},{},{}\nfuros:{:?}\ntarget depth:{}\ncurrent depth:{}\ncurrent shanten:{}", 
-            m, p, s, z, 
-            self.furos, 
-            self.target_depth,
-            self.current_depth,
-            self.current_shanten,
+        write!(
+            f,
+            "tehais:{},{},{},{}\nfuros:{:?}\ntarget depth:{}\ncurrent depth:{}\ncurrent shanten:{}",
+            m, p, s, z, self.furos, self.target_depth, self.current_depth, self.current_shanten,
         )
     }
 }
-    
-fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
+
+fn calc_dfs_14(tehai: &[usize; 34], furos: Vec<Furo>, depth: i8) -> i8 {
     let mut nodes = Vec::new();
     let mut horas = Vec::new();
-    
+
     let shanten = calc(&tehai, furos.len() as i8);
     let hora_shanten = -1;
-    
+
     let candidate = DfsCandidate::new(
         tehai.clone(),
         furos.clone(),
         hora_shanten,
         shanten,
         depth,
-        0
+        0,
     );
 
     let mut node_count = 0;
@@ -98,45 +96,46 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
         if let None = element {
             break;
         } else if let Some(e) = element {
-            
             let shanten = e.current_shanten;
             // println!("shanten:{:?}", shanten);
-            
+
             if shanten == -1 {
                 horas.push(e);
                 // 和了したらそれ以降は展開しない
                 // println!("{:?}", e);
 
                 // points, yakus = calc_horas();
-                continue
+                continue;
             } else if e.current_depth >= e.target_depth {
                 // 深さが指定深さに到達したらそれ以降は展開しない
-                continue
+                continue;
             } else if e.current_shanten - e.target_shanten > e.target_depth - e.current_depth {
                 // 残り探索深さがtargetシャンテンに到達不可能になったら探索打ち切り
-                continue
+                continue;
             }
             // 手牌を変更する
-            for i in 0..34 { // 減少
+            for i in 0..34 {
+                // 減少
                 if e.tehai_nums[i] == 0 {
-                    continue
+                    continue;
                 }
 
-                for j in 0..34 { // 増加
+                for j in 0..34 {
+                    // 増加
                     if e.tehai_nums[j] == 4 {
-                        continue
+                        continue;
                     }
                     if i == j {
-                        continue
+                        continue;
                     }
-                    
+
                     let mut new_tehai_nums = e.tehai_nums.clone();
                     new_tehai_nums[i] -= 1;
                     new_tehai_nums[j] += 1;
-                    
+
                     let new_shanten = calc(&new_tehai_nums, e.furos.len() as i8);
                     if new_shanten > shanten {
-                        continue
+                        continue;
                     }
                     // println!("{},{}",i,j);
 
@@ -146,13 +145,12 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
                         e.target_shanten,
                         new_shanten,
                         e.target_depth,
-                        e.current_depth + 1
+                        e.current_depth + 1,
                     );
                     nodes.push(new_candidate);
                     node_count += 1;
                 }
             }
-
         }
     }
 
@@ -165,28 +163,25 @@ fn calc_dfs_14(tehai: &[usize; 34], furos:Vec<Furo>, depth:i8) -> i8 {
     i8mod
 }
 
-fn dfs_chunk(tehai: &[usize; 34], depth:i8) {
+fn dfs_chunk(tehai: &[usize; 34], depth: i8) {
     // 現在のシャンテン数計算
     assert!(tehai.iter().sum::<usize>() == 14);
     let furo_num = (14 - tehai.iter().sum::<usize>() as i8) / 3;
     let current_shanten = calc(tehai, furo_num);
-    println!("current_shanten:{}",current_shanten);
+    println!("current_shanten:{}", current_shanten);
 
     // free pais、head、mentsuの組み合わせを探索する。
     // depthが2未満の場合、free pais 2 の探索を行い和了手牌を列挙する。
-    
+
     // depthが2の場合、head1 & freepais0,
     // head0, freepais2の探索を行う。
 
     // free pais 2 のパターンは加えるだけで良い？はい。
     // これでかなり高速化するのでは？
     // 34*34固定になるけどね。
-    // 
+    //
 
     let free_pai_num = depth % 3;
-
-    
-
 
     // パターンに加えて、追加牌を定義できる。
     // →役判定のときに追加牌を最後のツモ牌とすることが可能。
@@ -199,28 +194,26 @@ fn dfs_chunk(tehai: &[usize; 34], depth:i8) {
 }
 
 fn cut_mentsu(
-        mut tehai: [usize; 34], 
-        free_pai_num:i8, 
-        head_num:i8, 
-        mentsu_num:i8, 
-        mut current_hora_pattern:HoraPattern, 
-        mut result_hora_patterns:Vec<HoraPattern>,
-        start_id:usize,
-    ) -> Vec<HoraPattern>{
+    mut tehai: [usize; 34],
+    free_pai_num: i8,
+    head_num: i8,
+    mentsu_num: i8,
+    mut current_hora_pattern: HoraPattern,
+    mut result_hora_patterns: Vec<HoraPattern>,
+    start_id: usize,
+) -> Vec<HoraPattern> {
     assert!(free_pai_num < 3);
-    
+
     // if complete, append result and return
     // this path is no mentsu
     // check rest_pai + free_pai can make mentsu.
-    let rest_pai_num:usize = tehai.iter().sum();
-    
+    let rest_pai_num: usize = tehai.iter().sum();
+
     if rest_pai_num == 0 {
-        println!("rest_pai_num:{:?}",rest_pai_num);
-        result_hora_patterns.push(
-            current_hora_pattern
-        );
-        println!("result_hora_patterns:{:?}",result_hora_patterns);
-        return result_hora_patterns
+        println!("rest_pai_num:{:?}", rest_pai_num);
+        result_hora_patterns.push(current_hora_pattern);
+        println!("result_hora_patterns:{:?}", result_hora_patterns);
+        return result_hora_patterns;
     }
 
     // cut head
@@ -231,39 +224,63 @@ fn cut_mentsu(
                 current_hora_pattern.head = Some(Mentsu::new(
                     MentsuType::Head,
                     VisibilityType::An,
-                    i
+                    i,
                 ));
-                println!("head found:{:?}",i);
-                result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), 0);
+                println!("head found:{:?}", i);
+                result_hora_patterns = cut_mentsu(
+                    tehai,
+                    free_pai_num,
+                    head_num,
+                    mentsu_num,
+                    current_hora_pattern.clone(),
+                    result_hora_patterns.clone(),
+                    0,
+                );
                 tehai[i] += 2;
             }
         }
     }
-    
+
     // cut syuntsu
     for i in start_id..27 {
-        if tehai[i] >= 1 && tehai[i+1] >= 1 && tehai[i+2] >= 1 {
+        if tehai[i] >= 1 && tehai[i + 1] >= 1 && tehai[i + 2] >= 1 {
             tehai[i] -= 1;
-            tehai[i+1] -= 1;
-            tehai[i+2] -= 1;
-            let new_mentsu = Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, i);
+            tehai[i + 1] -= 1;
+            tehai[i + 2] -= 1;
+            let new_mentsu =
+                Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, i);
             current_hora_pattern.mentsus.push(new_mentsu);
-            result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
+            result_hora_patterns = cut_mentsu(
+                tehai,
+                free_pai_num,
+                head_num,
+                mentsu_num,
+                current_hora_pattern.clone(),
+                result_hora_patterns.clone(),
+                i,
+            );
             current_hora_pattern.mentsus.pop();
             tehai[i] += 1;
-            tehai[i+1] += 1;
-            tehai[i+2] += 1;
+            tehai[i + 1] += 1;
+            tehai[i + 2] += 1;
         }
     }
 
     // add kotsu
     for i in start_id..34 {
         if tehai[i] >= 3 {
-
             tehai[i] -= 3;
-            let new_mentsu = Mentsu::new(MentsuType::Kotsu, VisibilityType::An ,i);
+            let new_mentsu = Mentsu::new(MentsuType::Kotsu, VisibilityType::An, i);
             current_hora_pattern.mentsus.push(new_mentsu);
-            result_hora_patterns = cut_mentsu(tehai, free_pai_num, head_num, mentsu_num, current_hora_pattern.clone(), result_hora_patterns.clone(), i);
+            result_hora_patterns = cut_mentsu(
+                tehai,
+                free_pai_num,
+                head_num,
+                mentsu_num,
+                current_hora_pattern.clone(),
+                result_hora_patterns.clone(),
+                i,
+            );
             current_hora_pattern.mentsus.pop();
             tehai[i] += 3;
         }
@@ -274,41 +291,37 @@ fn cut_mentsu(
         // let mentsu = search_mentsu(tehai, free_pai_num, );
     }
 
-
     result_hora_patterns
 }
-
-
-
-
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::{Instant};
+    use std::time::Instant;
 
     fn get_tehai() -> [usize; 34] {
-        let tehai:[usize; 34] = [
-            0, 1, 0, 1, 1, 2, 3, 3, 3,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0,
+        let tehai: [usize; 34] = [
+            0, 1, 0, 1, 1, 2, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
         ];
         tehai
     }
 
     #[test]
     fn calc_dfs_works() {
-        let tehai:[usize; 34] = get_tehai();
+        let tehai: [usize; 34] = get_tehai();
         let shanten = calc(&tehai, 0);
         println!("initial shanten:{}", shanten);
         let start = Instant::now();
-        let furos = vec!();
+        let furos = vec![];
         let a = calc_dfs_14(&tehai, furos, 2);
         assert!(a != 1);
         let end = start.elapsed();
-        println!("{}.{:03}秒経過しました。", end.as_secs(), end.subsec_nanos() / 1_000_000);
+        println!(
+            "{}.{:03}秒経過しました。",
+            end.as_secs(),
+            end.subsec_nanos() / 1_000_000
+        );
     }
 
     // #[test]
@@ -322,8 +335,15 @@ mod tests {
         let tehai = get_tehai();
         let mut current_hora_pattern = HoraPattern::new();
         let mut result_hora_patterns = Vec::new();
-        let result = cut_mentsu(tehai, 0, 0, 0, current_hora_pattern, result_hora_patterns, 0);
+        let result = cut_mentsu(
+            tehai,
+            0,
+            0,
+            0,
+            current_hora_pattern,
+            result_hora_patterns,
+            0,
+        );
         println!("test_cut_mentsu result:{:?}", result);
     }
-
 }

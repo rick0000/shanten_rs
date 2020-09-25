@@ -1,7 +1,6 @@
-use crate::pai::Pai;
 use crate::furo::{Furo, FuroType};
+use crate::pai::Pai;
 use crate::yaku::{Yaku, YakuName};
-
 
 pub enum WaitingType {
     Tanki,
@@ -24,51 +23,52 @@ pub enum VisibilityType {
     Min,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Mentsu {
-    pub mentsu_type:MentsuType,
-    pub visibility:VisibilityType,
-    pub id:usize
+    pub mentsu_type: MentsuType,
+    pub visibility: VisibilityType,
+    pub id: usize,
+    pub pais: Vec<Pai>,
 }
 impl Mentsu {
-    pub fn new(mentsu_type:MentsuType, visibility:VisibilityType ,id:usize) -> Self {
+    pub fn new(mentsu_type: MentsuType, visibility: VisibilityType, id:usize) -> Self {
+        let mut pais = vec![];
+        match mentsu_type {
+            MentsuType::Head => pais.extend(Pai::new_by_vec(vec![id,id])),
+            MentsuType::Kantsu => pais.extend(Pai::new_by_vec(vec![id,id,id,id])),
+            MentsuType::Kotsu => pais.extend(Pai::new_by_vec(vec![id,id,id])),
+            MentsuType::Syuntsu => pais.extend(Pai::new_by_vec(vec![id,id+1,id+2])),
+        }
         Self {
             mentsu_type,
             visibility,
             id,
+            pais,
         }
     }
 }
 
-
-
-
-
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct HoraPattern {
-    pub head:Option<Mentsu>,
-    pub mentsus:Vec<Mentsu>,
+    pub head: Option<Mentsu>,
+    pub mentsus: Vec<Mentsu>,
 }
 impl HoraPattern {
     pub fn new() -> Self {
         Self {
-            head:None,
-            mentsus:vec!(),
+            head: None,
+            mentsus: vec![],
         }
     }
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct FixedHoraPattern {
-    pub head:Mentsu,
-    pub mentsus:[Mentsu;4],
+    pub head: Mentsu,
+    pub mentsus: Vec<Mentsu>,
 }
 impl FixedHoraPattern {
-    pub fn new(head:Mentsu, mentsus:[Mentsu;4]) -> Self {
-        Self {
-            head,
-            mentsus,
-        }
+    pub fn new(head: Mentsu, mentsus: Vec<Mentsu>) -> Self {
+        Self { head, mentsus }
     }
 }
 
@@ -78,91 +78,137 @@ pub enum HoraType {
     Tsumo,
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Combination {
-    Chitoitsu(),
-    Kokushimuso(),
+    Chitoitsu,
+    Kokushimuso,
     Normal(FixedHoraPattern),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HoraYakuInformation {
-    oya:bool,
-    hora_type:HoraType,
-    first_turn:bool,
-    num_doras:usize,
-    num_akadoras:usize,
-    num_uradoras:usize,
-    reach:bool,
-    double_reach:bool,
-    ippatsu:bool,
-    rinshan:bool,
-    chankan:bool,
-    haitei:bool,
-    bakaze:Pai,
-    jikaze:Pai,
-    
+    oya: bool,
+    hora_type: HoraType,
+    first_turn: bool,
+    num_doras: usize,
+    num_akadoras: usize,
+    num_uradoras: usize,
+    reach: bool,
+    double_reach: bool,
+    ippatsu: bool,
+    rinshan: bool,
+    chankan: bool,
+    haitei: bool,
+    bakaze: Pai,
+    jikaze: Pai,
 }
 
 #[derive(Clone, Debug)]
 pub struct HoraCandidate {
-    taken:Pai,
-    furos:Vec<Furo>,
-    yaku_info:HoraYakuInformation,
-    combination:Combination,
-    taken_index:i8,
-    yakus:Vec<Yaku>,
+    taken: Pai,
+    furos: Vec<Furo>,
+    all_pais: Vec<Pai>,
+    yaku_info: HoraYakuInformation,
+    combination: Combination,
+    taken_index: i8,
+    yakus: Vec<Yaku>,
 }
 
 impl HoraCandidate {
     pub fn new(
-        taken:Pai,
-        furos:Vec<Furo>,
-        yaku_info:HoraYakuInformation,
-        combination:Combination,
-        taken_index:i8,
+        taken: Pai,
+        furos: Vec<Furo>,
+        all_pais: Vec<Pai>,
+        yaku_info: HoraYakuInformation,
+        combination: Combination,
+        taken_index: i8,
     ) -> Self {
-        
-        
         let mut initialized = Self {
             taken,
             furos,
+            all_pais,
             yaku_info,
             combination,
             taken_index,
-            yakus:vec!(),
+            yakus: vec![],
         };
         initialized.calc_yakus();
         initialized
     }
 
     fn calc_yakus(&mut self) {
-        let menzen = self.furos.iter().filter(|e| e.furo_type != FuroType::ANKAN).count() == 0;
+        let menzen = self
+            .furos
+            .iter()
+            .filter(|e| e.furo_type != FuroType::ANKAN)
+            .count()
+            == 0;
 
-        if self.yaku_info.first_turn && 
-            self.yaku_info.hora_type == HoraType::Tsumo && 
-            self.yaku_info.oya {
-                self.add_yaku(YakuName::Tenho, 100, 0, menzen);
-            }
-        if self.yaku_info.first_turn && 
-            self.yaku_info.hora_type == HoraType::Tsumo &&
-            self.yaku_info.oya == false {
-                self.add_yaku(YakuName::Chiho, 100, 0, menzen);
-            }
+        if self.yaku_info.first_turn
+            && self.yaku_info.hora_type == HoraType::Tsumo
+            && self.yaku_info.oya
+        {
+            self.add_yaku(YakuName::Tenho, 100, 0, menzen);
+        }
+        if self.yaku_info.first_turn
+            && self.yaku_info.hora_type == HoraType::Tsumo
+            && self.yaku_info.oya == false
+        {
+            self.add_yaku(YakuName::Chiho, 100, 0, menzen);
+        }
+        if let Combination::Kokushimuso = self.combination {
+            self.add_yaku(YakuName::Kokushimuso, 100, 0, menzen);
+        }
     }
 
-    fn add_yaku(&mut self, yaku_name:YakuName, menzen_fan:i8, kui_fan:i8, menzen:bool) {
+    fn add_yaku(&mut self, yaku_name: YakuName, menzen_fan: i8, kui_fan: i8, menzen: bool) {
         if menzen {
             self.yakus.push(Yaku::new(yaku_name, menzen_fan));
         } else {
             self.yakus.push(Yaku::new(yaku_name, kui_fan));
         }
     }
-    fn delete_yaku(&mut self, yaku_name:YakuName){
-        self.yakus.retain(|e| e.yaku_name != yaku_name);
+    fn delete_yaku(&mut self, yaku_name: YakuName) {
+        self.yakus.retain(|x| x.yaku_name != yaku_name);
     }
-    
+
+    fn num_anko(&self) -> usize {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus
+                .iter()
+                .filter(|e| {
+                    (e.mentsu_type == MentsuType::Kotsu && e.visibility == VisibilityType::An)
+                        || (e.mentsu_type == MentsuType::Kantsu
+                            && e.visibility == VisibilityType::An)
+                })
+                .count()
+        } else {
+            0
+        }
+    }
+
+    fn num_kantsu(&self) -> usize {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus
+                .iter()
+                .filter(|e| e.mentsu_type == MentsuType::Kantsu)
+                .count()
+        } else {
+            0
+        }
+    }
+
+    fn ryuiso(&self) -> bool {
+        self.all_pais.iter().filter(|e| e.is_green()).count() == 14
+    }
+
+    fn num_sangenpais(&self) -> usize {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus.iter().filter(|e| e.pais[0].is_dragon()).count()
+        } else {
+            0
+        }
+    }
 }
 
 pub struct Hora {
@@ -170,7 +216,7 @@ pub struct Hora {
     furos: Vec<Furo>,
     taken: Pai,
     hora_yaku_information: HoraYakuInformation,
-    
+
     free_pais: Vec<Pai>,
     all_pais: Vec<Pai>,
     num_doras: usize,
@@ -188,20 +234,18 @@ impl Hora {
         taken: Pai,
         hora_yaku_information: HoraYakuInformation,
     ) -> Self {
-
         let mut free_pais = tehais.clone();
         free_pais.push(taken);
 
-        let mut all_pais: Vec<Pai> = vec!();
-        
+        let mut all_pais: Vec<Pai> = vec![];
+
         let num_doras = 0;
         let num_uradoras = 0;
         let num_akadoras = 0;
-    
-        let mut candidates: Vec<HoraCandidate> = vec!();
-        
+
+        let mut candidates: Vec<HoraCandidate> = vec![];
+
         let mut best_candidate: HoraCandidate = candidates.pop().unwrap();
-    
 
         Self {
             tehais,
@@ -218,41 +262,69 @@ impl Hora {
             candidates: candidates,
             best_candidate: best_candidate,
         }
-
     }
 }
-
-
 
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn test_hora_candidate() {
-        let taken = Pai::new_by_id(1);
-        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 1);
-        let mentsus = [
-            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 2),
+    fn test_num_sangenpais() {
+        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 0);
+        let mentsus = vec![
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 33),
             Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 3),
             Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 4),
             Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 5),
         ];
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
-        
-        let candidate = get_hora_candidate(taken, combination);
-        
-        // assert!(candidate.yakus.contains(&Yaku::new("suanko".to_string(), 100)));
+        let taken = Pai::new(1);
+        let candidate = get_hora_candidate(taken, vec![], vec![], combination);
+
+        assert_eq!(candidate.num_sangenpais(), 1);
+        println!("num_sangenpais():{}", candidate.num_sangenpais());
     }
 
-    fn get_hora_candidate(taken:Pai, combination:Combination) -> HoraCandidate {
+    fn test_hora_candidate() {
+        let taken = Pai::new(1);
+        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 0);
+        let mentsus = vec![
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 33),
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 3),
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 4),
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 5),
+        ];
+
+        let mut all_pais = Vec::new();
+        for mentsu in &mentsus {
+            all_pais.extend(&mentsu.pais)
+        }
+        let furos = Vec::new();
+        
+        let pattern = FixedHoraPattern::new(head, mentsus);
+        let combination = Combination::Normal(pattern);
+        
+        
+        
+        let candidate = get_hora_candidate(taken, all_pais, furos, combination);
+
+        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Suanko, 100)));
+    }
+
+
+
+
+    fn get_hora_candidate(taken: Pai, all_pais:Vec<Pai>, furos:Vec<Furo>, combination: Combination) -> HoraCandidate {
         let hora_yaku_information = get_hora_yaku_information();
         let taken_index = 0;
-        let furos = vec!();
+        
+        
         let candidate = HoraCandidate::new(
             taken,
-            furos,            
+            furos,
+            all_pais,
             hora_yaku_information,
             combination,
             taken_index,
@@ -260,18 +332,17 @@ mod test {
         candidate
     }
 
-
-    fn get_tehais() -> Vec<Pai>{
-        let tehai_nums:Vec<i8> = vec![0,1,2,3,4,5,6,7,8,9,9,10,10,10];
-        let tehais:Vec<Pai> = tehai_nums.iter().map(|x| Pai::new_by_id(*x)).collect();
+    fn get_tehais() -> Vec<Pai> {
+        let tehai_nums: Vec<usize> = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 10, 10, 10];
+        let tehais: Vec<Pai> = tehai_nums.iter().map(|x| Pai::new(*x)).collect();
         tehais
     }
 
     fn get_hora_yaku_information() -> HoraYakuInformation {
         let hora_type = HoraType::Tsumo;
         let oya = true;
-        let bakaze = Pai::new_by_id(27);
-        let jikaze = Pai::new_by_id(27);
+        let bakaze = Pai::new(27);
+        let jikaze = Pai::new(27);
         let num_doras = 0;
         let num_akadoras = 0;
         let num_uradoras = 0;
@@ -300,6 +371,4 @@ mod test {
             chankan,
         }
     }
-
-
 }

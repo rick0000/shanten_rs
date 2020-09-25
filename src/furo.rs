@@ -16,4 +16,11 @@ pub struct Furo {
     pub consumed: Vec<Pai>,
     pub min_id: i8,
 }
-
+impl Furo {
+    pub fn pais(&self) -> Vec<Pai> {
+        let mut pais = vec![];
+        pais.push(self.taken);
+        pais.extend(self.consumed.iter().copied());
+        pais
+    }
+}

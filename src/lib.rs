@@ -1,16 +1,15 @@
-
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
 use pyo3::types::PyList;
+use pyo3::wrap_pyfunction;
 
-mod shanten_analysis;
-mod mentsu_tartsu_num;
-mod resource;
-mod tenpai_analysis;
 mod dfs;
-mod pai;
-mod hora;
 mod furo;
+mod hora;
+mod mentsu_tartsu_num;
+mod pai;
+mod resource;
+mod shanten_analysis;
+mod tenpai_analysis;
 mod yaku;
 
 #[macro_use]
@@ -19,18 +18,13 @@ extern crate lazy_static;
 pub use crate::shanten_analysis::calc;
 pub use crate::shanten_analysis::calc_all;
 
-
-
-
-
-
 #[pyfunction]
 fn get_shanten(tehai: &PyList, furo_num: i8) -> i8 {
     let v: Vec<usize> = tehai.as_ref().extract().unwrap();
     if v.len() != 34 {
         panic!("tehai length must be 34");
     }
-    let mut tehai_array = [0;34];
+    let mut tehai_array = [0; 34];
     for i in 0..v.len() {
         tehai_array[i] = v[i];
     }
@@ -43,7 +37,7 @@ fn get_shanten_all(tehai: &PyList, furo_num: i8) -> [i8; 3] {
     if v.len() != 34 {
         panic!("tehai length must be 34");
     }
-    let mut tehai_array = [0;34];
+    let mut tehai_array = [0; 34];
     for i in 0..v.len() {
         tehai_array[i] = v[i];
     }

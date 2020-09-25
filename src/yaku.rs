@@ -1,17 +1,11 @@
-
-
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Yaku {
-    pub yaku_name:YakuName,
-    pub fan:i8,
+    pub yaku_name: YakuName,
+    pub fan: i8,
 }
 impl Yaku {
-    pub fn new(yaku_name:YakuName, fan:i8) -> Self {
-        Self {
-            yaku_name,
-            fan,
-        }
+    pub fn new(yaku_name: YakuName, fan: i8) -> Self {
+        Self { yaku_name, fan }
     }
 }
 
@@ -45,7 +39,7 @@ pub enum YakuName {
     Chankan,
     Haiteiraoyue,
     Hoteiraoyui,
-    
+
     Sanshokudojun,
     Ikkitsukan,
     Honchantaiyao,
@@ -61,7 +55,7 @@ pub enum YakuName {
     Honiso,
     Junchantaiyao,
     Ryanpeko,
-    
+
     Chiniso,
 }
 
@@ -85,7 +79,7 @@ impl YakuName {
             YakuName::Akadora => "akadora",
             YakuName::Reach => "reach",
             YakuName::Ippatsu => "ippatsu",
-            
+
             YakuName::MenzenchinTsumoho => "menzenchin_tsumoho",
             YakuName::Tanyaochu => "tanyaochu",
             YakuName::Pinfu => "pinfu",
@@ -97,7 +91,7 @@ impl YakuName {
             YakuName::Chankan => "chankan",
             YakuName::Haiteiraoyue => "haiteiraoyue",
             YakuName::Hoteiraoyui => "hoteiraoyui",
-            
+
             YakuName::Sanshokudojun => "sanshokudojun",
             YakuName::Ikkitsukan => "ikkitsukan",
             YakuName::Honchantaiyao => "honchantaiyao",
@@ -109,11 +103,11 @@ impl YakuName {
             YakuName::Sankantsu => "sankantsu",
             YakuName::Shosangen => "shosangen",
             YakuName::DoubleReach => "double_reach",
-            
+
             YakuName::Honiso => "honiso",
             YakuName::Junchantaiyao => "junchantaiyao",
             YakuName::Ryanpeko => "ryanpeko",
-            
+
             YakuName::Chiniso => "chiniso",
         }
     }
@@ -124,8 +118,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_yakuname () {
+    fn test_yakuname() {
         println!("{}", YakuName::Tenho.name());
-        
     }
 }
