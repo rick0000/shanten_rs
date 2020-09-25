@@ -26,7 +26,7 @@ impl Pai {
         ids.into_iter().map(|x| Pai::new(x)).collect()
     }
 
-    pub fn is_dragon(&self) -> bool {
+    pub fn is_sangenpai(&self) -> bool {
         if let PaiType::JIHAI = &self.pai_type {
             match self.number {
                 5 | 6 | 7 => return true,
@@ -35,6 +35,29 @@ impl Pai {
         }
         false
     }
+    pub fn is_wind(&self) -> bool {
+        if let PaiType::JIHAI = &self.pai_type {
+            match self.number {
+                1 | 2 | 3 | 4 => return true,
+                _ => return false,
+            }
+        }
+        false
+    }
+    pub fn is_jihai(&self) -> bool {
+        self.pai_type == PaiType::JIHAI
+    }
+    pub fn is_number(&self) -> bool {
+        self.pai_type != PaiType::JIHAI
+    }
+    pub fn is_yaochu(&self) -> bool {
+        self.number == 1 || self.number == 9 || self.pai_type == PaiType::JIHAI
+    }
+    pub fn is_same_symbol(&self, other:Self) -> bool {
+        self.number == other.number && self.pai_type == self.pai_type
+    }
+
+
     pub fn is_green(&self) -> bool {
         if let PaiType::SOUZU = &self.pai_type {
             match self.number {

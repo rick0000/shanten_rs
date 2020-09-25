@@ -1,10 +1,10 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Yaku {
     pub yaku_name: YakuName,
-    pub fan: i8,
+    pub fan: usize,
 }
 impl Yaku {
-    pub fn new(yaku_name: YakuName, fan: i8) -> Self {
+    pub fn new(yaku_name: YakuName, fan: usize) -> Self {
         Self { yaku_name, fan }
     }
 }
