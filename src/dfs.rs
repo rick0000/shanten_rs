@@ -1,9 +1,7 @@
 //!
 use crate::furo::Furo;
-use crate::hora::HoraPattern;
-use crate::hora::Mentsu;
-use crate::hora::MentsuType;
-use crate::hora::VisibilityType;
+use crate::tenpai_analysis::{HoraPattern, FixedHoraPattern};
+use crate::mentsu::{Mentsu, VisibilityType, MentsuType};
 use crate::pai::Pai;
 /// # ある手牌から深さ優先探索を行い和了点数が到達可能かを判定する
 ///

@@ -1,89 +1,8 @@
 use crate::furo::{Furo, FuroType};
 use crate::pai::{Pai, PaiType};
 use crate::yaku::{Yaku, YakuName};
-
-pub enum WaitingType {
-    Tanki,
-    Kanchan,
-    Penchan,
-    Ryanmen,
-    Shanpon,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum MentsuType {
-    Syuntsu,
-    Kotsu,
-    Kantsu,
-    Head,
-}
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum VisibilityType {
-    An,
-    Min,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Mentsu {
-    pub mentsu_type: MentsuType,
-    pub visibility: VisibilityType,
-    pub id: usize,
-    pub pais: Vec<Pai>,
-}
-impl Mentsu {
-    pub fn new(mentsu_type: MentsuType, visibility: VisibilityType, id: usize) -> Self {
-        let mut pais = vec![];
-        match mentsu_type {
-            MentsuType::Head => pais.extend(Pai::new_by_vec(vec![id, id])),
-            MentsuType::Kantsu => pais.extend(Pai::new_by_vec(vec![id, id, id, id])),
-            MentsuType::Kotsu => pais.extend(Pai::new_by_vec(vec![id, id, id])),
-            MentsuType::Syuntsu => pais.extend(Pai::new_by_vec(vec![id, id + 1, id + 2])),
-        }
-        Self {
-            mentsu_type,
-            visibility,
-            id,
-            pais,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct HoraPattern {
-    pub head: Option<Mentsu>,
-    pub mentsus: Vec<Mentsu>,
-}
-impl HoraPattern {
-    pub fn new() -> Self {
-        Self {
-            head: None,
-            mentsus: vec![],
-        }
-    }
-}
-#[derive(Clone, Debug, PartialEq)]
-pub struct FixedHoraPattern {
-    pub head: Mentsu,
-    pub mentsus: Vec<Mentsu>,
-}
-impl FixedHoraPattern {
-    pub fn new(head: Mentsu, mentsus: Vec<Mentsu>) -> Self {
-        Self { head, mentsus }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum HoraType {
-    Ron,
-    Tsumo,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Combination {
-    Chitoitsu,
-    Kokushimuso,
-    Normal(FixedHoraPattern),
-}
+use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
+use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HoraYakuInformation {
@@ -637,8 +556,9 @@ impl Hora {
             jikaze,    
         };
 
+        // let combinations = Self::calc_combination(all_pais, furos);
 
-        
+
         let mut candidates: Vec<HoraCandidate> = vec![];
         let mut best_candidate: HoraCandidate = candidates.pop().unwrap();
 
