@@ -11,5 +11,4 @@ fn calc_tenpai(_tehai: &[usize; 34], _furo_num: i8) -> i8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 }

@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PaiType {
     MANZU,
@@ -7,13 +9,23 @@ pub enum PaiType {
     UNKNOWN,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Pai {
     pub id: usize,
     pub number: usize,
     pub pai_type: PaiType,
 }
+impl PartialOrd for Pai {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
 
+impl PartialEq for Pai {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
 impl Pai {
     pub fn new(id: usize) -> Self {
         Self {
@@ -53,10 +65,9 @@ impl Pai {
     pub fn is_yaochu(&self) -> bool {
         self.number == 1 || self.number == 9 || self.pai_type == PaiType::JIHAI
     }
-    pub fn is_same_symbol(&self, other:Self) -> bool {
+    pub fn is_same_symbol(&self, other: Self) -> bool {
         self.number == other.number && self.pai_type == self.pai_type
     }
-
 
     pub fn is_green(&self) -> bool {
         if let PaiType::SOUZU = &self.pai_type {

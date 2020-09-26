@@ -221,11 +221,8 @@ fn cut_mentsu(
         for i in start_id..34 {
             if tehai[i] >= 2 {
                 tehai[i] -= 2;
-                current_hora_pattern.head = Some(Mentsu::new(
-                    MentsuType::Head,
-                    VisibilityType::An,
-                    i,
-                ));
+                current_hora_pattern.head =
+                    Some(Mentsu::new(MentsuType::Head, VisibilityType::An, i));
                 println!("head found:{:?}", i);
                 result_hora_patterns = cut_mentsu(
                     tehai,
@@ -247,8 +244,7 @@ fn cut_mentsu(
             tehai[i] -= 1;
             tehai[i + 1] -= 1;
             tehai[i + 2] -= 1;
-            let new_mentsu =
-                Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, i);
+            let new_mentsu = Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, i);
             current_hora_pattern.mentsus.push(new_mentsu);
             result_hora_patterns = cut_mentsu(
                 tehai,

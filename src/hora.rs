@@ -1,8 +1,6 @@
 use crate::furo::{Furo, FuroType};
-use crate::pai::Pai;
+use crate::pai::{Pai, PaiType};
 use crate::yaku::{Yaku, YakuName};
-
-
 
 pub enum WaitingType {
     Tanki,
@@ -33,13 +31,13 @@ pub struct Mentsu {
     pub pais: Vec<Pai>,
 }
 impl Mentsu {
-    pub fn new(mentsu_type: MentsuType, visibility: VisibilityType, id:usize) -> Self {
+    pub fn new(mentsu_type: MentsuType, visibility: VisibilityType, id: usize) -> Self {
         let mut pais = vec![];
         match mentsu_type {
-            MentsuType::Head => pais.extend(Pai::new_by_vec(vec![id,id])),
-            MentsuType::Kantsu => pais.extend(Pai::new_by_vec(vec![id,id,id,id])),
-            MentsuType::Kotsu => pais.extend(Pai::new_by_vec(vec![id,id,id])),
-            MentsuType::Syuntsu => pais.extend(Pai::new_by_vec(vec![id,id+1,id+2])),
+            MentsuType::Head => pais.extend(Pai::new_by_vec(vec![id, id])),
+            MentsuType::Kantsu => pais.extend(Pai::new_by_vec(vec![id, id, id, id])),
+            MentsuType::Kotsu => pais.extend(Pai::new_by_vec(vec![id, id, id])),
+            MentsuType::Syuntsu => pais.extend(Pai::new_by_vec(vec![id, id + 1, id + 2])),
         }
         Self {
             mentsu_type,
@@ -116,10 +114,8 @@ pub struct HoraCandidate {
     yakus: Vec<Yaku>,
 }
 
-
-const YAKUMAN_FAN:usize = 100;
+const YAKUMAN_FAN: usize = 100;
 impl HoraCandidate {
-
     pub fn new(
         taken: Pai,
         furos: Vec<Furo>,
@@ -193,12 +189,27 @@ impl HoraCandidate {
         }
 
         if self.yakus.len() > 0 {
-            return
+            return;
         }
 
-        self.add_yaku(YakuName::Dora, self.yaku_info.num_doras, self.yaku_info.num_doras, menzen);
-        self.add_yaku(YakuName::Uradora, self.yaku_info.num_uradoras, self.yaku_info.num_uradoras, menzen);
-        self.add_yaku(YakuName::Akadora, self.yaku_info.num_akadoras, self.yaku_info.num_akadoras, menzen);
+        self.add_yaku(
+            YakuName::Dora,
+            self.yaku_info.num_doras,
+            self.yaku_info.num_doras,
+            menzen,
+        );
+        self.add_yaku(
+            YakuName::Uradora,
+            self.yaku_info.num_uradoras,
+            self.yaku_info.num_uradoras,
+            menzen,
+        );
+        self.add_yaku(
+            YakuName::Akadora,
+            self.yaku_info.num_akadoras,
+            self.yaku_info.num_akadoras,
+            menzen,
+        );
 
         // 1fan
         if self.yaku_info.reach {
@@ -240,16 +251,12 @@ impl HoraCandidate {
             self.add_yaku(YakuName::Hoteiraoyui, 1, 1, menzen);
         }
 
-
         if self.sanshokudojun() {
             self.add_yaku(YakuName::Sanshokudojun, 2, 1, menzen);
         }
-
-
-
-
-
-
+        if self.ikkitsukan() {
+            self.add_yaku(YakuName::Ikkitsukan, 2, 1, menzen);
+        }
     }
 
     fn add_yaku(&mut self, yaku_name: YakuName, menzen_fan: usize, kui_fan: usize, menzen: bool) {
@@ -299,7 +306,10 @@ impl HoraCandidate {
 
     fn num_sangenpais(&self) -> usize {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus.iter().filter(|e| e.pais[0].is_sangenpai()).count()
+            c.mentsus
+                .iter()
+                .filter(|e| e.pais[0].is_sangenpai())
+                .count()
         } else {
             0
         }
@@ -314,8 +324,8 @@ impl HoraCandidate {
     }
     fn shosushi(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus.iter().filter(|x| x.pais[0].is_wind()).count() == 3 
-            && c.head.pais[0].is_wind()
+            c.mentsus.iter().filter(|x| x.pais[0].is_wind()).count() == 3
+                && c.head.pais[0].is_wind()
         } else {
             false
         }
@@ -323,31 +333,35 @@ impl HoraCandidate {
     fn churenpoton(&self) -> bool {
         let target_type = self.all_pais[0].pai_type;
         if !self.all_pais.iter().all(|x| x.pai_type == target_type) {
-            return false
+            return false;
         }
 
-        let all_num:Vec<usize> = self.all_pais.iter().map(|x| x.number).collect();
+        let all_num: Vec<usize> = self.all_pais.iter().map(|x| x.number).collect();
         for compare in vec![
-            vec![4,1,1,1,1,1,1,1,3],
-            vec![3,2,1,1,1,1,1,1,3],
-            vec![3,1,2,1,1,1,1,1,3],
-            vec![3,1,1,2,1,1,1,1,3],
-            vec![3,1,1,1,2,1,1,1,3],
-            vec![3,1,1,1,1,2,1,1,3],
-            vec![3,1,1,1,1,1,2,1,3],
-            vec![3,1,1,1,1,1,1,2,3],
-            vec![3,1,1,1,1,1,1,1,4],
+            vec![4, 1, 1, 1, 1, 1, 1, 1, 3],
+            vec![3, 2, 1, 1, 1, 1, 1, 1, 3],
+            vec![3, 1, 2, 1, 1, 1, 1, 1, 3],
+            vec![3, 1, 1, 2, 1, 1, 1, 1, 3],
+            vec![3, 1, 1, 1, 2, 1, 1, 1, 3],
+            vec![3, 1, 1, 1, 1, 2, 1, 1, 3],
+            vec![3, 1, 1, 1, 1, 1, 2, 1, 3],
+            vec![3, 1, 1, 1, 1, 1, 1, 2, 3],
+            vec![3, 1, 1, 1, 1, 1, 1, 1, 4],
         ] {
             if all_num.iter().eq(compare.iter()) {
-                return true
+                return true;
             }
         }
         false
     }
     fn pinfu(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus.iter().filter(|x| x.mentsu_type == MentsuType::Syuntsu).count() == 4 
-            && c.head.pais[0].is_wind()
+            c.mentsus
+                .iter()
+                .filter(|x| x.mentsu_type == MentsuType::Syuntsu)
+                .count()
+                == 4
+                && c.head.pais[0].is_wind()
         } else {
             false
         }
@@ -362,12 +376,12 @@ impl HoraCandidate {
             for i in &c.mentsus {
                 for j in &c.mentsus {
                     if i == j {
-                        continue
+                        continue;
                     }
                     if i.pais[0].is_same_symbol(j.pais[0]) {
-                        return true
+                        return true;
                     }
-                } 
+                }
             }
             false
         } else {
@@ -377,64 +391,98 @@ impl HoraCandidate {
 
     fn bakaze(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus
-            .iter()
-            .any(|x| 
+            c.mentsus.iter().any(|x| {
                 (x.mentsu_type == MentsuType::Kantsu || x.mentsu_type == MentsuType::Kotsu)
-                && x.pais[0].is_same_symbol(self.yaku_info.bakaze))
+                    && x.pais[0].is_same_symbol(self.yaku_info.bakaze)
+            })
         } else {
             false
         }
     }
     fn jikaze(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus
-            .iter()
-            .any(|x| 
+            c.mentsus.iter().any(|x| {
                 (x.mentsu_type == MentsuType::Kantsu || x.mentsu_type == MentsuType::Kotsu)
-                && x.pais[0].is_same_symbol(self.yaku_info.jikaze))
-        } else {
-            false
-        }
-    }
-    
-    fn sanshokudojun(&self) -> bool {
-        if let Combination::Normal(c) = &self.combination {
-            let shuntsus = c.mentsus
-            .iter()
-            .filter(|x| x.mentsu_type == MentsuType::Syuntsu);
-            if shuntsus.count() < 3 {
-                return false;
-            }
-            
-            
-            false
+                    && x.pais[0].is_same_symbol(self.yaku_info.jikaze)
+            })
         } else {
             false
         }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    fn fanpai_fan(&self, pai:Pai) -> usize {
+    fn sanshokudojun(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            let shuntsus: Vec<&Mentsu> = c
+                .mentsus
+                .iter()
+                .filter(|x| x.mentsu_type == MentsuType::Syuntsu)
+                .collect();
+
+            if shuntsus.len() < 3 {
+                return false;
+            }
+            for i in 0..shuntsus.len() {
+                let target_shuntsu = shuntsus[i];
+                let pai_number = target_shuntsu.pais[0].number;
+                if shuntsus
+                    .iter()
+                    .any(|x| x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::MANZU)
+                    && shuntsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::PINZU
+                    })
+                    && shuntsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::SOUZU
+                    })
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn ikkitsukan(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            let shuntsus: Vec<&Mentsu> = c
+                .mentsus
+                .iter()
+                .filter(|x| x.mentsu_type == MentsuType::Syuntsu)
+                .collect();
+
+            if shuntsus.len() < 3 {
+                return false;
+            }
+            for mps in vec![PaiType::MANZU, PaiType::PINZU, PaiType::SOUZU] {
+                if shuntsus
+                    .iter()
+                    .any(|x| x.pais[0].number == 1 && x.pais[0].pai_type == mps)
+                    && shuntsus
+                        .iter()
+                        .any(|x| x.pais[0].number == 4 && x.pais[0].pai_type == mps)
+                    && shuntsus
+                        .iter()
+                        .any(|x| x.pais[0].number == 7 && x.pais[0].pai_type == mps)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn fanpai_fan(&self, pai: Pai) -> usize {
         if pai.is_sangenpai() {
-            return 1
+            return 1;
         }
         let mut fan = 0;
-        if pai.is_same_symbol(self.yaku_info.jikaze){
+        if pai.is_same_symbol(self.yaku_info.jikaze) {
             fan += 1;
         }
-        if pai.is_same_symbol(self.yaku_info.bakaze){
+        if pai.is_same_symbol(self.yaku_info.bakaze) {
             fan += 1;
         }
-        return fan
+        return fan;
     }
-    
 }
 
 pub struct Hora {
@@ -504,19 +552,19 @@ mod test {
             Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 4),
             Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 5),
         ];
-        
+
         let mut all_pais = Vec::new();
         for mentsu in &mentsus {
             all_pais.extend(&mentsu.pais)
         }
         let furos = Vec::new();
-        
+
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
         let taken = Pai::new(1);
-        
+
         let candidate = get_hora_candidate(taken, all_pais, furos, combination);
-        
+
         assert_eq!(candidate.num_sangenpais(), 1);
         println!("num_sangenpais():{}", candidate.num_sangenpais());
     }
@@ -537,10 +585,10 @@ mod test {
             all_pais.extend(&mentsu.pais)
         }
         let furos = Vec::new();
-        
+
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
-        
+
         let candidate = get_hora_candidate(taken, all_pais, furos, combination);
 
         assert!(candidate.yakus.contains(&Yaku::new(YakuName::Suanko, 100)));
@@ -555,20 +603,22 @@ mod test {
             Mentsu::new(MentsuType::Kantsu, VisibilityType::An, 4),
             Mentsu::new(MentsuType::Kantsu, VisibilityType::Min, 5),
         ];
-        
+
         let mut all_pais = Vec::new();
         for mentsu in &mentsus {
             all_pais.extend(&mentsu.pais)
         }
         let furos = Vec::new();
-        
+
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
         let taken = Pai::new(1);
-        
+
         let candidate = get_hora_candidate(taken, all_pais, furos, combination);
-        
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Sukantsu, 100)));
+
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Sukantsu, 100)));
     }
 
     #[test]
@@ -580,21 +630,25 @@ mod test {
             Mentsu::new(MentsuType::Kantsu, VisibilityType::An, 30),
             Mentsu::new(MentsuType::Kantsu, VisibilityType::Min, 33),
         ];
-        
+
         let mut all_pais = Vec::new();
         for mentsu in &mentsus {
             all_pais.extend(&mentsu.pais)
         }
         let furos = Vec::new();
-        
+
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
         let taken = Pai::new(27);
-        
+
         let candidate = get_hora_candidate(taken, all_pais, furos, combination);
-        
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Sukantsu, 100)));
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Shosushi, 100)));
+
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Sukantsu, 100)));
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Shosushi, 100)));
         assert!(candidate.yakus.contains(&Yaku::new(YakuName::Tsuiso, 100)));
     }
     #[test]
@@ -606,30 +660,153 @@ mod test {
             Mentsu::new(MentsuType::Kantsu, VisibilityType::An, 33),
             Mentsu::new(MentsuType::Kantsu, VisibilityType::Min, 1),
         ];
-        
+
         let mut all_pais = Vec::new();
         for mentsu in &mentsus {
             all_pais.extend(&mentsu.pais)
         }
         let furos = Vec::new();
-        
+
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
         let taken = Pai::new(27);
-        
+
         let candidate = get_hora_candidate(taken, all_pais, furos, combination);
-        
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Sukantsu, 100)));
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Daisangen, 100)));
-        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Tsuiso, 100))==false);
+
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Sukantsu, 100)));
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Daisangen, 100)));
+        assert!(candidate.yakus.contains(&Yaku::new(YakuName::Tsuiso, 100)) == false);
     }
 
+    #[test]
+    fn test_sanshokudojun() {
+        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 27);
+        let mentsus = vec![
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, 1),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 10),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, 19),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 1),
+        ];
 
-    fn get_hora_candidate(taken: Pai, all_pais:Vec<Pai>, furos:Vec<Furo>, combination: Combination) -> HoraCandidate {
+        let mut all_pais = Vec::new();
+        for mentsu in &mentsus {
+            all_pais.extend(&mentsu.pais)
+        }
+        let furos = vec![
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(10)),
+                Pai::new_by_vec(vec![11, 12]),
+            ),
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(1)),
+                Pai::new_by_vec(vec![2, 3]),
+            ),
+        ];
+
+        let pattern = FixedHoraPattern::new(head, mentsus);
+        let combination = Combination::Normal(pattern);
+        let taken = Pai::new(27);
+
+        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination);
+
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Sanshokudojun, 1)));
+    }
+
+    #[test]
+    fn test_sanshokudojun_not() {
+        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 27);
+        let mentsus = vec![
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, 1),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 10),
+            Mentsu::new(MentsuType::Kotsu, VisibilityType::An, 19),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 1),
+        ];
+
+        let mut all_pais = Vec::new();
+        for mentsu in &mentsus {
+            all_pais.extend(&mentsu.pais)
+        }
+        let furos = vec![
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(10)),
+                Pai::new_by_vec(vec![11, 12]),
+            ),
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(1)),
+                Pai::new_by_vec(vec![2, 3]),
+            ),
+        ];
+
+        let pattern = FixedHoraPattern::new(head, mentsus);
+        let combination = Combination::Normal(pattern);
+        let taken = Pai::new(27);
+
+        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination);
+
+        assert!(
+            candidate
+                .yakus
+                .contains(&Yaku::new(YakuName::Sanshokudojun, 1))
+                == false
+        );
+    }
+    #[test]
+    fn test_ikkitsukan() {
+        let head = Mentsu::new(MentsuType::Head, VisibilityType::An, 27);
+        let mentsus = vec![
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, 0),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 3),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::An, 6),
+            Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, 1),
+        ];
+
+        let mut all_pais = Vec::new();
+        for mentsu in &mentsus {
+            all_pais.extend(&mentsu.pais)
+        }
+        let furos = vec![
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(8)),
+                Pai::new_by_vec(vec![6, 7]),
+            ),
+            Furo::new(
+                FuroType::CHI,
+                Some(Pai::new(0)),
+                Pai::new_by_vec(vec![1, 2]),
+            ),
+        ];
+
+        let pattern = FixedHoraPattern::new(head, mentsus);
+        let combination = Combination::Normal(pattern);
+        let taken = Pai::new(27);
+
+        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination);
+
+        assert!(candidate
+            .yakus
+            .contains(&Yaku::new(YakuName::Ikkitsukan, 1)));
+    }
+
+    fn get_hora_candidate(
+        taken: Pai,
+        all_pais: Vec<Pai>,
+        furos: Vec<Furo>,
+        combination: Combination,
+    ) -> HoraCandidate {
         let hora_yaku_information = get_hora_yaku_information();
         let taken_index = 0;
-        
-        
+
         let candidate = HoraCandidate::new(
             taken,
             furos,
