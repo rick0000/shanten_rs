@@ -584,9 +584,7 @@ pub struct Hora {
 
     free_pais: Vec<Pai>,
     all_pais: Vec<Pai>,
-    num_doras: usize,
-    num_uradoras: usize,
-    num_akadoras: usize,
+
 
     candidates: Vec<HoraCandidate>,
     best_candidate: HoraCandidate,
@@ -597,20 +595,53 @@ impl Hora {
         tehais: Vec<Pai>,
         furos: Vec<Furo>,
         taken: Pai,
-        hora_yaku_information: HoraYakuInformation,
+
+        oya: bool,
+        hora_type: HoraType,
+        first_turn: bool,
+        doras: Vec<Pai>,
+        uradoras: Vec<Pai>,
+        reach: bool,
+        double_reach: bool,
+        ippatsu: bool,
+        rinshan: bool,
+        chankan: bool,
+        haitei: bool,
+        bakaze: Pai,
+        jikaze: Pai,
     ) -> Self {
+
         let mut free_pais = tehais.clone();
         free_pais.push(taken);
 
         let mut all_pais: Vec<Pai> = vec![];
 
-        let num_doras = 0;
-        let num_uradoras = 0;
-        let num_akadoras = 0;
+        let num_doras = Self::count_doras(&all_pais, doras);
+        let num_uradoras = Self::count_doras(&all_pais, uradoras);
+        let num_akadoras = all_pais.iter().filter(|x| x.is_red()).count();
 
+        let hora_yaku_information = HoraYakuInformation {
+            oya,
+            hora_type,
+            first_turn,
+            num_doras,
+            num_uradoras,
+            num_akadoras,
+            reach,
+            double_reach,
+            ippatsu,
+            rinshan,
+            chankan,
+            haitei,
+            bakaze,
+            jikaze,    
+        };
+
+
+        
         let mut candidates: Vec<HoraCandidate> = vec![];
-
         let mut best_candidate: HoraCandidate = candidates.pop().unwrap();
+
 
         Self {
             tehais,
@@ -620,13 +651,21 @@ impl Hora {
 
             free_pais: free_pais,
             all_pais: all_pais,
-            num_doras: num_doras,
-            num_uradoras: num_uradoras,
-            num_akadoras: num_akadoras,
 
             candidates: candidates,
             best_candidate: best_candidate,
         }
+
+    }
+
+    fn count_doras(all_pais:&Vec<Pai>, doras:Vec<Pai>) -> usize {
+        let mut num = 0;
+        for p in all_pais {
+            if doras.contains(p) {
+                num += 1;
+            }
+        }
+        num
     }
 }
 
