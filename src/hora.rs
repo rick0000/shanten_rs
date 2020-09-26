@@ -257,6 +257,35 @@ impl HoraCandidate {
         if self.ikkitsukan() {
             self.add_yaku(YakuName::Ikkitsukan, 2, 1, menzen);
         }
+        if self.honchantaiyao() {
+            self.add_yaku(YakuName::Honchantaiyao, 2, 1, menzen);
+        }
+        if let Combination::Chitoitsu = self.combination {
+            self.add_yaku(YakuName::Chitoitsu, 2, 0, menzen);
+        }
+        if self.toitoiho() {
+            self.add_yaku(YakuName::Toitoiho, 2, 2, menzen);
+        }
+        if self.num_anko() == 3 {
+            self.add_yaku(YakuName::Sananko, 2, 2, menzen);
+        }
+        if self.honroto() {
+            self.add_yaku(YakuName::Honroto, 2, 2, menzen);
+            self.delete_yaku(YakuName::Honchantaiyao);
+        }
+        if self.sanshokudoko() {
+            self.add_yaku(YakuName::Sanshokudoko, 2, 2, menzen);
+        }
+        if self.num_kantsu() == 3 {
+            self.add_yaku(YakuName::Sankantsu, 2, 2, menzen);
+        }
+        if self.shosangen() {
+            self.add_yaku(YakuName::Shosangen, 2, 2, menzen);
+        }
+        if self.yaku_info.double_reach {
+            self.add_yaku(YakuName::DoubleReach, 2, 0, menzen);
+        }
+
     }
 
     fn add_yaku(&mut self, yaku_name: YakuName, menzen_fan: usize, kui_fan: usize, menzen: bool) {
@@ -424,13 +453,43 @@ impl HoraCandidate {
             for i in 0..shuntsus.len() {
                 let target_shuntsu = shuntsus[i];
                 let pai_number = target_shuntsu.pais[0].number;
-                if shuntsus
-                    .iter()
-                    .any(|x| x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::MANZU)
+                if shuntsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::MANZU
+                    })
                     && shuntsus.iter().any(|x| {
                         x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::PINZU
                     })
                     && shuntsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::SOUZU
+                    })
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    fn sanshokudoko(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            let kotsus: Vec<&Mentsu> = c
+                .mentsus
+                .iter()
+                .filter(|x| x.mentsu_type == MentsuType::Kotsu || x.mentsu_type == MentsuType::Kantsu)
+                .collect();
+
+            if kotsus.len() < 3 {
+                return false;
+            }
+            for i in 0..kotsus.len() {
+                let target_shuntsu = kotsus[i];
+                let pai_number = target_shuntsu.pais[0].number;
+                if kotsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::MANZU
+                    })
+                    && kotsus.iter().any(|x| {
+                        x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::PINZU
+                    })
+                    && kotsus.iter().any(|x| {
                         x.pais[0].number == pai_number && x.pais[0].pai_type == PaiType::SOUZU
                     })
                 {
@@ -468,6 +527,38 @@ impl HoraCandidate {
             }
         }
         false
+    }
+
+    fn honchantaiyao(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus.iter().all(|x| x.pais.iter().any(|p| p.is_yaochu()))
+            && c.head.pais.iter().any(|p| p.is_yaochu())
+        }else{
+            false
+        }
+    }
+    
+    fn toitoiho(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus.iter().all(
+                |x| x.mentsu_type == MentsuType::Kotsu 
+                || x.mentsu_type == MentsuType::Kantsu)
+        }else{
+            false
+        }
+    }
+
+    fn honroto(&self) -> bool {
+        self.all_pais.iter().all(|x| x.is_yaochu())
+    }
+
+    fn shosangen(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            c.mentsus.iter().filter(|x| x.pais[0].is_sangenpai()).count() == 2
+                && c.head.pais[0].is_sangenpai()
+        } else {
+            false
+        }
     }
 
     fn fanpai_fan(&self, pai: Pai) -> usize {
