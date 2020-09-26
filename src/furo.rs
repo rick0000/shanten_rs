@@ -1,7 +1,7 @@
 use crate::pai::Pai;
 use std::cmp;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum FuroType {
     CHI,
     PON,
@@ -10,7 +10,7 @@ pub enum FuroType {
     DAIMINKAN,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Furo {
     pub furo_type: FuroType,
     pub taken: Option<Pai>,

@@ -113,7 +113,10 @@ fn cut(
         }
     };
 
+
     // append furos for all pattern.
+
+
 
     result_hora_patterns
 }
@@ -132,6 +135,7 @@ fn cut_mentsu(
 
     if rest_pai_num == 0 {
         // println!("rest_pai_num:{:?}", rest_pai_num);
+        current_hora_pattern.mentsus.sort();
         result_hora_patterns.push(current_hora_pattern);
         // println!("result_hora_patterns:{:?}", result_hora_patterns);
         return result_hora_patterns;
@@ -181,6 +185,8 @@ fn cut_mentsu(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
+
 
     #[test]
     fn test_combination() {
@@ -199,6 +205,39 @@ mod tests {
             println!("{:?}", combination);
         }
         
+    }
+
+    #[test]
+    fn test_complex_combination() {
+        let tehais = Pai::new_by_str_vec(vec!["2m","2m","2m","2m","3m","3m","3m","3m","4m","4m","4m","4m","5m"]);
+        let mut taken = Pai::new_str("1m");
+        let furos = vec![
+        ];
+        
+        let _combinations = calc_combination(
+            taken,
+            tehais.clone(),
+            furos.clone(),
+        );
+        let start = Instant::now();
+        
+        let mut taken = Pai::new_str("5m");
+        
+        let combinations = calc_combination(
+            taken,
+            tehais,
+            furos,
+        );
+        
+        for combination in combinations {
+            println!("{:?}", combination);
+        }
+        let end = start.elapsed();
+
+        println!(
+            "passed {}micro sec",
+            end.subsec_nanos() / 1000
+        );
     }
 
 }

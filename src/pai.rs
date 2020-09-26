@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PaiType {
     MANZU,
     PINZU,
@@ -10,7 +10,7 @@ pub enum PaiType {
     UNKNOWN,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Pai {
     pub id: usize,
     pub number: usize,
@@ -23,18 +23,17 @@ impl fmt::Debug for Pai {
     }    
 } 
 
+// impl PartialOrd for Pai {
+//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+//         self.id.partial_cmp(&other.id)
+//     }
+// }
 
-impl PartialOrd for Pai {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.id.partial_cmp(&other.id)
-    }
-}
-
-impl PartialEq for Pai {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
+// impl PartialEq for Pai {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.id == other.id
+//     }
+// }
 impl Pai {
     pub fn new(id: usize) -> Self {
         Self {

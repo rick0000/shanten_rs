@@ -312,7 +312,7 @@ mod tests {
         assert!(a != 1);
         let end = start.elapsed();
         println!(
-            "{}.{:03}秒経過しました。",
+            "passed {}.{:03}sec",
             end.as_secs(),
             end.subsec_nanos() / 1_000_000
         );
