@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PaiType {
@@ -9,13 +10,20 @@ pub enum PaiType {
     UNKNOWN,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Pai {
     pub id: usize,
     pub number: usize,
     pub pai_type: PaiType,
     is_red: bool,
 }
+impl fmt::Debug for Pai {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{:?}", self.get_str())
+    }    
+} 
+
+
 impl PartialOrd for Pai {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.id.partial_cmp(&other.id)
@@ -50,7 +58,11 @@ impl Pai {
         ids.into_iter().map(|x| Pai::new(x)).collect()
     }
 
-    pub fn str(&self) -> String {
+    pub fn new_by_str_vec(pai_strs: Vec<&str>) -> Vec<Self> {
+        pai_strs.into_iter().map(|x| Pai::new_str(x)).collect()
+    }
+
+    pub fn get_str(&self) -> String {
         let suffix = if self.is_red {"r"} else {""};
         match self.pai_type {
             PaiType::MANZU => format!("{}m{}", self.number,suffix),

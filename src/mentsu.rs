@@ -1,4 +1,6 @@
+use std::fmt;
 use crate::pai::Pai;
+
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MentsuType {
@@ -13,7 +15,7 @@ pub enum VisibilityType {
     Min,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Mentsu {
     pub mentsu_type: MentsuType,
     pub visibility: VisibilityType,
@@ -38,3 +40,8 @@ impl Mentsu {
         }
     }
 }
+impl fmt::Debug for Mentsu {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{{ {:?}, {:?}, visibility:{:?} }}", self.mentsu_type, self.pais, self.visibility)
+    }    
+} 
