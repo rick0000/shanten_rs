@@ -40,6 +40,9 @@ impl FixedHoraPattern {
     pub fn new(head: Mentsu, mentsus: Vec<Mentsu>) -> Self {
         Self { head, mentsus }
     }
+    pub fn add_furos(&mut self, furo_mentsus: Vec<Mentsu>) {
+        self.mentsus.extend(furo_mentsus);
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -55,7 +58,7 @@ pub enum Combination {
     Normal(FixedHoraPattern),
 }
 
-fn calc_combination(taken: Pai, tehais: Vec<Pai>, furos: Vec<Furo>) -> Vec<Combination> {
+fn calc_combination(taken: Pai, tehais: &Vec<Pai>, furos: &Vec<Furo>) -> Vec<Combination> {
     let mut combinations = Vec::new();
     let mut num_tehais = [0; 34];
     for t in tehais {
@@ -90,7 +93,7 @@ fn calc_combination(taken: Pai, tehais: Vec<Pai>, furos: Vec<Furo>) -> Vec<Combi
 
 fn cut(
     mut num_tehais: [usize; 34],
-    mut furos: Vec<Furo>,
+    mut furos: &Vec<Furo>,
 ) -> Vec<FixedHoraPattern>
 {
     let mut result_hora_patterns = vec![];
@@ -102,21 +105,48 @@ fn cut(
                 Mentsu::new(MentsuType::Head, VisibilityType::An, i),
                 vec!(),
             );
-            println!("head found:{:?}", i);
-            result_hora_patterns = cut_mentsu(
+            // println!("head found:{:?}", i);
+            result_hora_patterns.extend(cut_mentsu(
                 num_tehais,
                 current_hora_pattern,
-                result_hora_patterns,
+                vec![],
                 0,
-            );
+            ));
             num_tehais[i] += 2;
         }
     };
 
 
     // append furos for all pattern.
+    let mut furo_mentsu = vec![];
+    for furo in furos {
+        match furo.furo_type {
+            FuroType::ANKAN => {
+                furo_mentsu.push(
+                    Mentsu::new(MentsuType::Kantsu, VisibilityType::An, furo.min_id)
+                );
+            }
+            FuroType::CHI => {
+                furo_mentsu.push(
+                    Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, furo.min_id)
+                );
+            }
+            FuroType::DAIMINKAN | FuroType::KAKAN => {
+                furo_mentsu.push(
+                    Mentsu::new(MentsuType::Kantsu, VisibilityType::Min, furo.min_id)
+                );
+            }
+            FuroType::PON => {
+                furo_mentsu.push(
+                    Mentsu::new(MentsuType::Kotsu, VisibilityType::Min, furo.min_id)
+                );
+            }
+        }
+    }
 
-
+    for pattern in result_hora_patterns.iter_mut() {
+        pattern.add_furos(furo_mentsu.clone());
+    }
 
     result_hora_patterns
 }
@@ -198,8 +228,8 @@ mod tests {
         
         let combinations = calc_combination(
             taken,
-            tehais,
-            furos,
+            &tehais,
+            &furos,
         );
         for combination in combinations {
             println!("{:?}", combination);
@@ -216,27 +246,28 @@ mod tests {
         
         let _combinations = calc_combination(
             taken,
-            tehais.clone(),
-            furos.clone(),
+            &tehais,
+            &furos,
         );
         let start = Instant::now();
         
         let mut taken = Pai::new_str("5m");
         
-        let combinations = calc_combination(
-            taken,
-            tehais,
-            furos,
-        );
-        
-        for combination in combinations {
-            println!("{:?}", combination);
+        let loop_num = 1000;
+        for _ in 0..loop_num {
+            let combinations = calc_combination(
+                taken,
+                &tehais,
+                &furos,
+            );    
         }
+        
         let end = start.elapsed();
 
         println!(
-            "passed {}micro sec",
-            end.subsec_nanos() / 1000
+            "passed {} micro sec in {} loops",
+            end.subsec_nanos() / 1000,
+            loop_num
         );
     }
 
