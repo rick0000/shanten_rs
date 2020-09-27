@@ -1,6 +1,6 @@
-use std::fmt;
 use crate::pai::Pai;
 use std::cmp::Ordering;
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum MentsuType {
@@ -44,6 +44,10 @@ impl Mentsu {
 
 impl fmt::Debug for Mentsu {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{{ {:?}, {:?}, visibility:{:?} }}", self.mentsu_type, self.pais, self.visibility)
-    }    
-} 
+        write!(
+            f,
+            "{{ {:?}, {:?}, visibility:{:?} }}",
+            self.mentsu_type, self.pais, self.visibility
+        )
+    }
+}

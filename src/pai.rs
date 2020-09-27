@@ -19,9 +19,9 @@ pub struct Pai {
 }
 impl fmt::Debug for Pai {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{:?}", self.get_str())
-    }    
-} 
+        write!(f, "{:?}", self.get_str())
+    }
+}
 
 // impl PartialOrd for Pai {
 //     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -62,11 +62,11 @@ impl Pai {
     }
 
     pub fn get_str(&self) -> String {
-        let suffix = if self.is_red {"r"} else {""};
+        let suffix = if self.is_red { "r" } else { "" };
         match self.pai_type {
-            PaiType::MANZU => format!("{}m{}", self.number,suffix),
-            PaiType::PINZU => format!("{}p{}", self.number,suffix),
-            PaiType::SOUZU => format!("{}s{}", self.number,suffix),
+            PaiType::MANZU => format!("{}m{}", self.number, suffix),
+            PaiType::PINZU => format!("{}p{}", self.number, suffix),
+            PaiType::SOUZU => format!("{}s{}", self.number, suffix),
             _ => Self::id_to_str(self.id).to_string(),
         }
     }
@@ -74,7 +74,7 @@ impl Pai {
     pub fn is_red(&self) -> bool {
         self.is_red
     }
-    
+
     pub fn is_sangenpai(&self) -> bool {
         if let PaiType::JIHAI = &self.pai_type {
             match self.number {
@@ -130,9 +130,7 @@ impl Pai {
         }
     }
 
-
-
-    fn id_to_str(id:usize) -> &'static str {
+    fn id_to_str(id: usize) -> &'static str {
         match id {
             0 => "1m",
             1 => "2m",
@@ -144,7 +142,7 @@ impl Pai {
             7 => "8m",
             8 => "9m",
 
-            9 =>  "1p",
+            9 => "1p",
             10 => "2p",
             11 => "3p",
             12 => "4p",
@@ -172,11 +170,11 @@ impl Pai {
             32 => "F",
             33 => "C",
 
-            _ => panic!("not intended pai id {}", id)
+            _ => panic!("not intended pai id {}", id),
         }
     }
 
-    fn str_to_id(pai_str:&str) -> usize {
+    fn str_to_id(pai_str: &str) -> usize {
         match pai_str {
             "1m" => 0,
             "2m" => 1,
@@ -197,7 +195,7 @@ impl Pai {
             "7p" => 15,
             "8p" => 16,
             "9p" => 17,
-            
+
             "1s" => 18,
             "2s" => 19,
             "3s" => 20,
@@ -219,13 +217,11 @@ impl Pai {
             "5mr" => 4,
             "5pr" => 13,
             "5sr" => 22,
-            
+
             "?" => 100,
             _ => panic!("not intended pai str {}", pai_str),
         }
     }
-
-
 }
 
 #[cfg(test)]

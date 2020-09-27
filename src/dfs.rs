@@ -1,11 +1,11 @@
 //!
 use crate::furo::Furo;
-use crate::tenpai_analysis::{HoraPattern, FixedHoraPattern};
-use crate::mentsu::{Mentsu, VisibilityType, MentsuType};
+use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
 use crate::pai::Pai;
 /// # ある手牌から深さ優先探索を行い和了点数が到達可能かを判定する
 ///
 use crate::shanten_analysis::calc;
+use crate::tenpai_analysis::{FixedHoraPattern, HoraPattern};
 use std::fmt;
 
 #[derive(Clone)]
@@ -318,13 +318,7 @@ mod tests {
         );
     }
 
-    // #[test]
-    fn calc_chunk_dfs() {
-        let tehai = get_tehai();
-        dfs_chunk(&tehai, 1);
-    }
-
-    // #[test]
+    #[test]
     fn test_cut_mentsu() {
         let tehai = get_tehai();
         let mut current_hora_pattern = HoraPattern::new();

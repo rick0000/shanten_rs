@@ -1,13 +1,13 @@
 //!
+use crate::furo::{Furo, FuroType};
+use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
+use crate::pai::Pai;
+use crate::shanten_analysis::calc_all;
 /// # テンパイ形解析を行う
-/// 
+///
 ///
 ///
 use std::fmt;
-use crate::pai::Pai;
-use crate::furo::{Furo, FuroType};
-use crate::shanten_analysis::calc_all;
-use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
 
 pub enum WaitingType {
     Tanki,
@@ -16,7 +16,6 @@ pub enum WaitingType {
     Ryanmen,
     Shanpon,
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HoraPattern {
@@ -58,27 +57,27 @@ pub enum Combination {
     Normal(FixedHoraPattern),
 }
 
-fn calc_combination(taken: Pai, tehais: &Vec<Pai>, furos: &Vec<Furo>) -> Vec<Combination> {
+pub fn calc_combination(taken: Pai, tehais: &Vec<Pai>, furos: &Vec<Furo>) -> Vec<Combination> {
     let mut combinations = Vec::new();
     let mut num_tehais = [0; 34];
     for t in tehais {
         num_tehais[t.id] += 1
     }
     num_tehais[taken.id] += 1;
-    
+
     // それぞれの和了系のシャンテン数を取得する
     let shanten = calc_all(&num_tehais, furos.iter().count() as i8);
     let noraml_shanten = shanten[0];
     let kokushi_shanten = shanten[1];
     let chitoi_shanten = shanten[2];
-    const HORA_SHANTEN:i8 = -1;
+    const HORA_SHANTEN: i8 = -1;
 
     if noraml_shanten == HORA_SHANTEN {
-        let normal_hora_patterns = cut(
-            num_tehais,
-            furos,
-        );
-        let normal_combinations: Vec<Combination> = normal_hora_patterns.into_iter().map(|x| Combination::Normal(x)).collect();
+        let normal_hora_patterns = cut(num_tehais, furos);
+        let normal_combinations: Vec<Combination> = normal_hora_patterns
+            .into_iter()
+            .map(|x| Combination::Normal(x))
+            .collect();
         combinations.extend(normal_combinations);
     }
     if kokushi_shanten == HORA_SHANTEN {
@@ -90,56 +89,51 @@ fn calc_combination(taken: Pai, tehais: &Vec<Pai>, furos: &Vec<Furo>) -> Vec<Com
     combinations
 }
 
-
-fn cut(
-    mut num_tehais: [usize; 34],
-    mut furos: &Vec<Furo>,
-) -> Vec<FixedHoraPattern>
-{
+fn cut(mut num_tehais: [usize; 34], mut furos: &Vec<Furo>) -> Vec<FixedHoraPattern> {
     let mut result_hora_patterns = vec![];
-    
+
     for i in 0..34 {
         if num_tehais[i] >= 2 {
             num_tehais[i] -= 2;
-            let mut current_hora_pattern = FixedHoraPattern::new(
-                Mentsu::new(MentsuType::Head, VisibilityType::An, i),
-                vec!(),
-            );
+            let mut current_hora_pattern =
+                FixedHoraPattern::new(Mentsu::new(MentsuType::Head, VisibilityType::An, i), vec![]);
             // println!("head found:{:?}", i);
-            result_hora_patterns.extend(cut_mentsu(
-                num_tehais,
-                current_hora_pattern,
-                vec![],
-                0,
-            ));
+            result_hora_patterns.extend(cut_mentsu(num_tehais, current_hora_pattern, vec![], 0));
             num_tehais[i] += 2;
         }
-    };
-
+    }
 
     // append furos for all pattern.
     let mut furo_mentsu = vec![];
     for furo in furos {
         match furo.furo_type {
             FuroType::ANKAN => {
-                furo_mentsu.push(
-                    Mentsu::new(MentsuType::Kantsu, VisibilityType::An, furo.min_id)
-                );
+                furo_mentsu.push(Mentsu::new(
+                    MentsuType::Kantsu,
+                    VisibilityType::An,
+                    furo.min_id,
+                ));
             }
             FuroType::CHI => {
-                furo_mentsu.push(
-                    Mentsu::new(MentsuType::Syuntsu, VisibilityType::Min, furo.min_id)
-                );
+                furo_mentsu.push(Mentsu::new(
+                    MentsuType::Syuntsu,
+                    VisibilityType::Min,
+                    furo.min_id,
+                ));
             }
             FuroType::DAIMINKAN | FuroType::KAKAN => {
-                furo_mentsu.push(
-                    Mentsu::new(MentsuType::Kantsu, VisibilityType::Min, furo.min_id)
-                );
+                furo_mentsu.push(Mentsu::new(
+                    MentsuType::Kantsu,
+                    VisibilityType::Min,
+                    furo.min_id,
+                ));
             }
             FuroType::PON => {
-                furo_mentsu.push(
-                    Mentsu::new(MentsuType::Kotsu, VisibilityType::Min, furo.min_id)
-                );
+                furo_mentsu.push(Mentsu::new(
+                    MentsuType::Kotsu,
+                    VisibilityType::Min,
+                    furo.min_id,
+                ));
             }
         }
     }
@@ -157,7 +151,6 @@ fn cut_mentsu(
     mut result_hora_patterns: Vec<FixedHoraPattern>,
     start_id: usize,
 ) -> Vec<FixedHoraPattern> {
-
     // if complete, append result and return
     // this path is no mentsu
     // check rest_pai + free_pai can make mentsu.
@@ -211,57 +204,47 @@ fn cut_mentsu(
     result_hora_patterns
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::time::Instant;
 
-
     #[test]
     fn test_combination() {
-        let tehais = Pai::new_by_str_vec(vec!["2m","3m","4m","5m","6m","7m","8m","9m","1p","1p"]);
+        let tehais = Pai::new_by_str_vec(vec![
+            "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "1p", "1p",
+        ]);
         let taken = Pai::new_str("1m");
-        let furos = vec![
-            Furo::new(FuroType::CHI, Some(Pai::new_str("1s")), Pai::new_by_str_vec(vec!["2s", "3s"])),
-        ];
-        
-        let combinations = calc_combination(
-            taken,
-            &tehais,
-            &furos,
-        );
+        let furos = vec![Furo::new(
+            FuroType::CHI,
+            Some(Pai::new_str("1s")),
+            Pai::new_by_str_vec(vec!["2s", "3s"]),
+        )];
+
+        let combinations = calc_combination(taken, &tehais, &furos);
         for combination in combinations {
             println!("{:?}", combination);
         }
-        
     }
 
     #[test]
     fn test_complex_combination() {
-        let tehais = Pai::new_by_str_vec(vec!["2m","2m","2m","2m","3m","3m","3m","3m","4m","4m","4m","4m","5m"]);
+        let tehais = Pai::new_by_str_vec(vec![
+            "2m", "2m", "2m", "2m", "3m", "3m", "3m", "3m", "4m", "4m", "4m", "4m", "5m",
+        ]);
         let mut taken = Pai::new_str("1m");
-        let furos = vec![
-        ];
-        
-        let _combinations = calc_combination(
-            taken,
-            &tehais,
-            &furos,
-        );
+        let furos = vec![];
+
+        let _combinations = calc_combination(taken, &tehais, &furos);
         let start = Instant::now();
-        
+
         let mut taken = Pai::new_str("5m");
-        
+
         let loop_num = 1000;
         for _ in 0..loop_num {
-            let combinations = calc_combination(
-                taken,
-                &tehais,
-                &furos,
-            );    
+            let combinations = calc_combination(taken, &tehais, &furos);
         }
-        
+
         let end = start.elapsed();
 
         println!(
@@ -270,5 +253,4 @@ mod tests {
             loop_num
         );
     }
-
 }

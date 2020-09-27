@@ -5,14 +5,14 @@ use pyo3::wrap_pyfunction;
 mod dfs;
 mod furo;
 mod hora;
+mod mentsu;
 mod mentsu_tartsu_num;
 mod pai;
+mod point_datam;
 mod resource;
 mod shanten_analysis;
 mod tenpai_analysis;
 mod yaku;
-mod mentsu;
-
 
 #[macro_use]
 extern crate lazy_static;
