@@ -13,6 +13,7 @@ mod resource;
 mod shanten_analysis;
 mod tenpai_analysis;
 mod yaku;
+mod hora_candidate;
 
 #[macro_use]
 extern crate lazy_static;
