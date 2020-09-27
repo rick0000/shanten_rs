@@ -2,9 +2,8 @@ use crate::tenpai_analysis::HoraType;
 
 const KAZOE_YAKUMAN_FAN_MAX: u32 = 99;
 const YAKUMAN_FAN: u32 = 100;
-const FAN_MAX: u32 = YAKUMAN_FAN * 100;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct PointDatam {
     fu: u32,
     fan: u32,
@@ -17,10 +16,12 @@ pub struct PointDatam {
 }
 
 impl PointDatam {
+
     pub fn new(fu: u32, fan: u32, oya: bool, hora_type: HoraType) -> Self {
         let mut base_points: i32;
+    
         match fan {
-            YAKUMAN_FAN..=FAN_MAX => {
+            YAKUMAN_FAN..=u32::MAX => {
                 base_points = 8000 * (fan / YAKUMAN_FAN) as i32;
             }
             13..=KAZOE_YAKUMAN_FAN_MAX => {

@@ -5,6 +5,7 @@ use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType, calc_combi
 use crate::yaku::{Yaku, YakuName};
 use crate::hora_candidate::{HoraYakuInformation, HoraCandidate, TakenPosition};
 
+#[derive(Debug)]
 pub struct Hora {
     tehais: Vec<Pai>,
     furos: Vec<Furo>,
@@ -81,9 +82,6 @@ impl Hora {
                 all_pais.clone(),
                 hora_yaku_information.clone(),        
             ));
-        }
-        for c in &candidates {
-            println!("{:?} @ HORA", c);
         }
         
         let mut best_candidate: HoraCandidate = candidates.pop().unwrap();
@@ -172,11 +170,50 @@ impl Hora {
         }
         num
     }
-
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
+    #[test]
+    fn test_hora(){
+        
+        let tehais: Vec<Pai> = Pai::new_by_vec(vec![0,1,2,3,4,5,6,7,8,20,20,20,21,]);
+        let furos: Vec<Furo> = vec![];
+        let taken: Pai = Pai::new(22);
+        let oya: bool = false;
+        let hora_type: HoraType = HoraType::Ron;
+        let first_turn: bool = false;
+        let doras: Vec<Pai> = vec![];
+        let uradoras: Vec<Pai> = vec![];
+        let reach: bool = false;
+        let double_reach: bool = false;
+        let ippatsu: bool = false;
+        let rinshan: bool = false;
+        let chankan: bool = false;
+        let haitei: bool = false;
+        let bakaze: Pai = Pai::new_str("E");
+        let jikaze: Pai = Pai::new_str("S");
+        
+        let hora = Hora::new(
+            tehais,
+            furos,
+            taken,
+            oya,
+            hora_type,
+            first_turn,
+            doras,
+            uradoras,
+            reach,
+            double_reach,
+            ippatsu,
+            rinshan,
+            chankan,
+            haitei,
+            bakaze,
+            jikaze,
+        );
+        println!("{:?}",hora);
+    }
 }

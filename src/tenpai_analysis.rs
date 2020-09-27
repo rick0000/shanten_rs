@@ -44,7 +44,7 @@ impl FixedHoraPattern {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum HoraType {
     Ron,
     Tsumo,

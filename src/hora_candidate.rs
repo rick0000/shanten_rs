@@ -3,7 +3,7 @@ use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
 use crate::pai::{Pai, PaiType};
 use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType, calc_combination};
 use crate::yaku::{Yaku, YakuName};
-
+use crate::point_datam::PointDatam;
 
 #[derive(Clone, Debug)]
 pub enum TakenPosition {
@@ -20,7 +20,7 @@ pub enum Machi {
     Shanpon,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct HoraYakuInformation {
     pub oya: bool,
     pub hora_type: HoraType,
@@ -49,6 +49,7 @@ pub struct HoraCandidate {
     yakus: Vec<Yaku>,
     janto: Option<Pai>,
     machi: Option<Machi>,
+    points: PointDatam,
 }
 
 const YAKUMAN_FAN: usize = 100;
@@ -71,19 +72,88 @@ impl HoraCandidate {
             yakus: vec![],
             janto: None,
             machi: None,
+            points: PointDatam::new(0,0,false,HoraType::Ron), // dummy
         };
         
         initialized.calc_yakus();
+        let fu = initialized.get_fu();
+        let fan = initialized.yakus.iter().fold(0, |sum, y| sum + y.fan) as u32;
+        let oya = yaku_info.oya;
+        let hora_type = yaku_info.hora_type;
+
+        initialized.points = PointDatam::new(
+            fu, 
+            fan, 
+            oya, 
+            hora_type,
+        );
+
         initialized
     }
 
+    fn get_fu(&self) -> u32 {
+        match &self.combination {
+            Combination::Chitoitsu => {
+                return 25;
+            },
+            Combination::Kokushimuso => {
+                return 20;
+            },
+            Combination::Normal(c) => {
+                let mut fu = 20;
+                if self.is_menzen() 
+                && self.yaku_info.hora_type == HoraType::Ron {
+                    fu += 10;
+                }
+                if self.yaku_info.hora_type == HoraType::Tsumo {
+                    fu += 2;
+                }
+                if !self.is_menzen() && self.pinfu() {
+                    fu += 2;
+                }
+                for mentsu in &c.mentsus {
+                    let mut mentsu_fu = 0;
+                    if mentsu.mentsu_type == MentsuType::Kotsu {
+                        mentsu_fu += 2;
+                    } else if mentsu.mentsu_type == MentsuType::Kantsu {
+                        mentsu_fu += 8;
+                    }
+                    if mentsu.pais[0].is_yaochu() {
+                        mentsu_fu *= 2;
+                    }
+                    if mentsu.visibility == VisibilityType::An {
+                        mentsu_fu *= 2;
+                    }
+                    fu += mentsu_fu;
+                }
+                
+                fu += (self.fanpai_fan(c.head.pais[0]) * 2);
+                if let Some(m) = &self.machi {
+                    match m {
+                        Machi::Kanchan | Machi::Penchan | Machi::Tanki => {
+                            fu += 2;
+                        }
+                        _ => {},
+                    }    
+                }
+
+                fu as u32
+            },
+            
+        }
+    }
+
+    fn is_menzen(&self) -> bool {
+        self
+        .furos
+        .iter()
+        .filter(|e| e.furo_type != FuroType::ANKAN)
+        .count()
+        == 0
+    }
+
     fn calc_yakus(&mut self) {
-        let menzen = self
-            .furos
-            .iter()
-            .filter(|e| e.furo_type != FuroType::ANKAN)
-            .count()
-            == 0;
+        let menzen = self.is_menzen();
 
         if self.yaku_info.first_turn
             && self.yaku_info.hora_type == HoraType::Tsumo
@@ -229,9 +299,13 @@ impl HoraCandidate {
 
     fn add_yaku(&mut self, yaku_name: YakuName, menzen_fan: usize, kui_fan: usize, menzen: bool) {
         if menzen {
-            self.yakus.push(Yaku::new(yaku_name, menzen_fan));
+            if menzen_fan > 0 {
+                self.yakus.push(Yaku::new(yaku_name, menzen_fan));
+            }
         } else {
-            self.yakus.push(Yaku::new(yaku_name, kui_fan));
+            if kui_fan > 0{
+                self.yakus.push(Yaku::new(yaku_name, kui_fan));
+            }
         }
     }
     fn delete_yaku(&mut self, yaku_name: YakuName) {
