@@ -40,16 +40,16 @@ pub struct HoraYakuInformation {
 
 #[derive(Clone, Debug)]
 pub struct HoraCandidate {
-    taken: Pai,
-    furos: Vec<Furo>,
-    all_pais: Vec<Pai>,
-    yaku_info: HoraYakuInformation,
-    combination: Combination,
-    taken_position: Option<TakenPosition>,
-    yakus: Vec<Yaku>,
-    janto: Option<Pai>,
-    machi: Option<Machi>,
-    points: PointDatam,
+    pub taken: Pai,
+    pub furos: Vec<Furo>,
+    pub all_pais: Vec<Pai>,
+    pub yaku_info: HoraYakuInformation,
+    pub combination: Combination,
+    pub taken_position: Option<TakenPosition>,
+    pub yakus: Vec<Yaku>,
+    pub janto: Option<Pai>,
+    pub machi: Option<Machi>,
+    pub points: PointDatam,
 }
 
 const YAKUMAN_FAN: usize = 100;
@@ -90,6 +90,15 @@ impl HoraCandidate {
 
         initialized
     }
+
+    pub fn get_points(&self) -> i32 {
+        self.points.points
+    }
+    pub fn get_pointdatam(&self) -> PointDatam {
+        self.points.clone()
+    }
+
+
 
     fn get_fu(&self) -> u32 {
         match &self.combination {
@@ -137,6 +146,7 @@ impl HoraCandidate {
                     }    
                 }
 
+                fu = (fu/10) * 10;
                 fu as u32
             },
             

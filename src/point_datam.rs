@@ -5,14 +5,14 @@ const YAKUMAN_FAN: u32 = 100;
 
 #[derive(Clone, Debug)]
 pub struct PointDatam {
-    fu: u32,
-    fan: u32,
-    oya: bool,
-    hora_type: HoraType,
-    base_points: i32,
-    points: i32,
-    oya_payment: i32,
-    ko_payment: i32,
+    pub fu: u32,
+    pub fan: u32,
+    pub oya: bool,
+    pub hora_type: HoraType,
+    pub base_points: i32,
+    pub points: i32,
+    pub oya_payment: i32,
+    pub ko_payment: i32,
 }
 
 impl PointDatam {

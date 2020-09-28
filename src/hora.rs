@@ -4,8 +4,10 @@ use crate::pai::{Pai, PaiType};
 use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType, calc_combination};
 use crate::yaku::{Yaku, YakuName};
 use crate::hora_candidate::{HoraYakuInformation, HoraCandidate, TakenPosition};
+use crate::point_datam::PointDatam;
+use std::fmt;
 
-#[derive(Debug)]
+// #[derive(Debug)]
 pub struct Hora {
     tehais: Vec<Pai>,
     furos: Vec<Furo>,
@@ -17,6 +19,20 @@ pub struct Hora {
 
     candidates: Vec<HoraCandidate>,
     best_candidate: HoraCandidate,
+}
+
+impl fmt::Debug for Hora {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "tehai:{:?}\ntaken:{:?}\nfuro:{:?}\ncombination:{:?}\npoints:{:?}",
+            self.tehais,
+            self.taken,
+            self.furos,
+            self.best_candidate.combination,
+            self.best_candidate.points,
+        )
+    }
 }
 
 impl Hora {
@@ -84,7 +100,11 @@ impl Hora {
             ));
         }
         
-        let mut best_candidate: HoraCandidate = candidates.pop().unwrap();
+        let best_candidate: HoraCandidate = candidates
+            .clone()
+            .into_iter()
+            .max_by_key(|x| x.get_points())
+            .unwrap();
 
         Self {
             tehais,
@@ -169,6 +189,10 @@ impl Hora {
             }
         }
         num
+    }
+
+    pub fn get_pointdatam(&self) -> PointDatam {
+        self.best_candidate.get_pointdatam()
     }
 }
 
