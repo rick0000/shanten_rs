@@ -103,7 +103,7 @@ impl Pai {
         self.number == 1 || self.number == 9 || self.pai_type == PaiType::JIHAI
     }
     pub fn is_same_symbol(&self, other: Self) -> bool {
-        self.number == other.number && self.pai_type == self.pai_type
+        self.number == other.number && self.pai_type == other.pai_type
     }
     pub fn is_green(&self) -> bool {
         if let PaiType::SOUZU = &self.pai_type {

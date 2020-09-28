@@ -25,12 +25,12 @@ impl fmt::Debug for Hora {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "tehai:{:?}\ntaken:{:?}\nfuro:{:?}\ncombination:{:?}\npoints:{:?}",
+            "tehai:{:?}\ntaken:{:?}\nfuro:{:?}\npoints:{:?}\nyakus:{:?}",
             self.tehais,
             self.taken,
             self.furos,
-            self.best_candidate.combination,
             self.best_candidate.points,
+            self.best_candidate.yakus,
         )
     }
 }
@@ -40,6 +40,7 @@ impl Hora {
         tehais: Vec<Pai>,
         furos: Vec<Furo>,
         taken: Pai,
+        all_pais: Vec<Pai>,
         oya: bool,
         hora_type: HoraType,
         first_turn: bool,
@@ -56,12 +57,6 @@ impl Hora {
     ) -> Self {
         let mut free_pais = tehais.clone();
         free_pais.push(taken);
-
-        let mut all_pais: Vec<Pai> = vec![];
-        all_pais.extend(free_pais.clone());
-        for furo in &furos {
-            all_pais.extend(furo.pais.clone());
-        }
 
         let num_doras = Self::count_doras(&all_pais, doras);
         let num_uradoras = Self::count_doras(&all_pais, uradoras);
@@ -89,6 +84,10 @@ impl Hora {
             &tehais,
             &furos,
         );
+        if combinations.len() == 0 {
+            panic!("not hora!");
+        }
+
         let mut candidates: Vec<HoraCandidate> = vec![];
         for combination in combinations {
             candidates.extend(Self::get_candidate(
@@ -100,10 +99,11 @@ impl Hora {
             ));
         }
         
-        let best_candidate: HoraCandidate = candidates
+        
+        let best_candidate = candidates
             .clone()
             .into_iter()
-            .max_by_key(|x| x.get_points())
+            .max_by_key(|x| x.get_priority())
             .unwrap();
 
         Self {
@@ -111,14 +111,13 @@ impl Hora {
             furos,
             taken,
             hora_yaku_information,
-
-            free_pais: free_pais,
-            all_pais: all_pais,
-
-            candidates: candidates,
-            best_candidate: best_candidate,
+            free_pais,
+            all_pais,
+            candidates,
+            best_candidate,
         }
     }
+    
 
     fn get_candidate(
         combination:&Combination,
@@ -161,6 +160,9 @@ impl Hora {
 
                 // mentsu check
                 for (index, m) in c.mentsus.iter().enumerate() {
+                    if m.is_furo {
+                        continue;
+                    }
                     let syuntsu_eq = m.mentsu_type == MentsuType::Syuntsu
                     && m.id <= taken.id && taken.id <= m.id + 2;
                     let kotsu_eq = taken.id == m.id;
@@ -183,10 +185,14 @@ impl Hora {
 
     fn count_doras(all_pais: &Vec<Pai>, doras: Vec<Pai>) -> usize {
         let mut num = 0;
+        // println!("num doras {:?}, {:?}", all_pais, doras);
+        let mut num_doras = [0;34];
+        for d in &doras{
+            num_doras[d.id] += 1;
+        }
+
         for p in all_pais {
-            if doras.contains(p) {
-                num += 1;
-            }
+            num += num_doras[p.id];
         }
         num
     }
@@ -220,10 +226,14 @@ mod test {
         let bakaze: Pai = Pai::new_str("E");
         let jikaze: Pai = Pai::new_str("S");
         
+        let mut all_pais = tehais.clone();
+        all_pais.push(taken);
+
         let hora = Hora::new(
             tehais,
             furos,
             taken,
+            all_pais,
             oya,
             hora_type,
             first_turn,

@@ -4,3 +4,4 @@ target/release/*
 Cargo.lock
 !target/release/libshanten.so
 target*
+vscode/*

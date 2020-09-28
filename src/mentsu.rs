@@ -22,10 +22,15 @@ pub struct Mentsu {
     pub visibility: VisibilityType,
     pub id: usize,
     pub pais: Vec<Pai>,
+    pub is_furo: bool
 }
 
 impl Mentsu {
-    pub fn new(mentsu_type: MentsuType, visibility: VisibilityType, id: usize) -> Self {
+    pub fn new(
+            mentsu_type: MentsuType, 
+            visibility: VisibilityType, 
+            id: usize,
+        ) -> Self {
         let mut pais = vec![];
         match mentsu_type {
             MentsuType::Head => pais.extend(Pai::new_by_vec(vec![id, id])),
@@ -38,7 +43,28 @@ impl Mentsu {
             visibility,
             id,
             pais,
+            is_furo:false,
         }
+    }
+    pub fn new_furo(
+        mentsu_type: MentsuType, 
+        visibility: VisibilityType, 
+        id: usize,
+    ) -> Self {
+    let mut initialized = Self::new(
+        mentsu_type,
+        visibility,
+        id,
+    );
+    initialized.is_furo = true;
+    initialized
+}
+
+    pub fn change_to_visible(&mut self){
+        self.visibility = VisibilityType::Min;
+    }
+    pub fn change_to_furo_mentsu(&mut self){
+        self.is_furo = true;
     }
 }
 

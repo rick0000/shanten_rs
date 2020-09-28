@@ -11,7 +11,7 @@ pub enum TakenPosition {
     Mentsu(usize),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Machi {
     Tanki,
     Kanchan,
@@ -62,16 +62,26 @@ impl HoraCandidate {
         combination: Combination,
         taken_position: Option<TakenPosition>,
     ) -> Self {
+
+        // fix visivility
+        
+        let mut visivility_fixed_combination = combination.clone();
+        if yaku_info.hora_type == HoraType::Ron {
+            visivility_fixed_combination = Self::get_machi_fixed_combination(combination.clone(), taken_position.clone());
+        }
+            
+        
+        let machi = Self::get_machi(taken, taken_position.clone(), combination.clone());
         let mut initialized = Self {
             taken,
             furos,
             all_pais,
             yaku_info,
-            combination,
+            combination: visivility_fixed_combination,
             taken_position,
             yakus: vec![],
             janto: None,
-            machi: None,
+            machi,
             points: PointDatam::new(0,0,false,HoraType::Ron), // dummy
         };
         
@@ -85,19 +95,86 @@ impl HoraCandidate {
             fu, 
             fan, 
             oya, 
-            hora_type,
+            hora_type, 
         );
-
+        
         initialized
     }
 
-    pub fn get_points(&self) -> i32 {
+    pub fn get_priority(&self) -> u32 {
+        self.points.points * 1000 + self.points.fan * 1000 + self.points.fu
+    }
+
+    pub fn get_points(&self) -> u32 {
         self.points.points
     }
     pub fn get_pointdatam(&self) -> PointDatam {
         self.points.clone()
     }
 
+    
+    fn get_machi_fixed_combination(
+        combination: Combination,
+        taken_position: Option<TakenPosition>,
+    ) -> Combination {
+        let mut fixed_combination = combination.clone();
+
+        if let (Combination::Normal(c), Some(pos)) = (combination, taken_position) {
+            let mut pattern:FixedHoraPattern = c.clone();
+            match pos {
+                TakenPosition::Mentsu(mentsu_index) => {
+                    pattern.mentsus[mentsu_index].change_to_visible();
+                    return Combination::Normal(pattern);
+                }
+                TakenPosition::Head => {
+                    pattern.head.change_to_visible();
+                    return Combination::Normal(pattern);
+                }
+            }
+        }
+        fixed_combination
+    }
+
+    fn get_machi(
+        taken:Pai,
+        taken_position: Option<TakenPosition>,
+        combination: Combination,
+    ) -> Option<Machi> {
+        if let Some(pos) = taken_position.clone() {
+            match pos {
+                TakenPosition::Head => {
+                    return Some(Machi::Tanki)
+                },
+                TakenPosition::Mentsu(mentsu_index) => {
+                    if let Combination::Normal(c) = combination {
+                        let target_mentsu_pais = &c.mentsus[mentsu_index].pais;
+                        // println!("{:?}",target_mentsu_pais);
+                        match &c.mentsus[mentsu_index].mentsu_type {
+                            MentsuType::Syuntsu => {
+                                if target_mentsu_pais[1].is_same_symbol(taken) {
+                                    return Some(Machi::Kanchan);
+                                }
+                                if target_mentsu_pais[0].is_same_symbol(taken) 
+                                    && target_mentsu_pais[0].number == 7 {
+                                        return Some(Machi::Penchan);
+                                    }
+                                if target_mentsu_pais[2].is_same_symbol(taken) 
+                                    && target_mentsu_pais[2].number == 3 {
+                                        return Some(Machi::Penchan);
+                                    }
+                                return Some(Machi::Ryanmen);
+                            },
+                            _ => {
+                                return Some(Machi::Shanpon);
+                            }
+                        }
+                    }
+                },
+            }
+        }
+        None
+    }
+    
 
 
     fn get_fu(&self) -> u32 {
@@ -109,17 +186,23 @@ impl HoraCandidate {
                 return 20;
             },
             Combination::Normal(c) => {
+                if self.is_menzen() && self.pinfu() {
+                    if self.yaku_info.hora_type == HoraType::Ron {
+                        return 30;
+                    } else if self.yaku_info.hora_type == HoraType::Tsumo {
+                        return 20;
+                    }
+                }
+                
                 let mut fu = 20;
                 if self.is_menzen() 
-                && self.yaku_info.hora_type == HoraType::Ron {
+                    && self.yaku_info.hora_type == HoraType::Ron {
                     fu += 10;
                 }
-                if self.yaku_info.hora_type == HoraType::Tsumo {
+                if self.yaku_info.hora_type == HoraType::Tsumo{
                     fu += 2;
                 }
-                if !self.is_menzen() && self.pinfu() {
-                    fu += 2;
-                }
+                
                 for mentsu in &c.mentsus {
                     let mut mentsu_fu = 0;
                     if mentsu.mentsu_type == MentsuType::Kotsu {
@@ -136,7 +219,7 @@ impl HoraCandidate {
                     fu += mentsu_fu;
                 }
                 
-                fu += (self.fanpai_fan(c.head.pais[0]) * 2);
+                fu += self.fanpai_fan(c.head.pais[0]) * 2;
                 if let Some(m) = &self.machi {
                     match m {
                         Machi::Kanchan | Machi::Penchan | Machi::Tanki => {
@@ -145,9 +228,11 @@ impl HoraCandidate {
                         _ => {},
                     }    
                 }
-
-                fu = (fu/10) * 10;
-                fu as u32
+                if fu == 20 {
+                    // furoed pinfu is treated as 30 fu.
+                    fu = 30;
+                }
+                (f32::ceil(fu as f32/10.0) * 10.0) as u32
             },
             
         }
@@ -164,6 +249,7 @@ impl HoraCandidate {
 
     fn calc_yakus(&mut self) {
         let menzen = self.is_menzen();
+        
 
         if self.yaku_info.first_turn
             && self.yaku_info.hora_type == HoraType::Tsumo
@@ -258,9 +344,6 @@ impl HoraCandidate {
         if self.jikaze() {
             self.add_yaku(YakuName::Jikaze, 1, 1, menzen);
         }
-        if self.yaku_info.rinshan {
-            self.add_yaku(YakuName::Rinshankaiho, 1, 1, menzen);
-        }
         if self.yaku_info.chankan {
             self.add_yaku(YakuName::Chankan, 1, 1, menzen);
         }
@@ -269,6 +352,10 @@ impl HoraCandidate {
         }
         if self.yaku_info.haitei && self.yaku_info.hora_type == HoraType::Ron {
             self.add_yaku(YakuName::Hoteiraoyui, 1, 1, menzen);
+        }
+        if self.yaku_info.rinshan {
+            self.add_yaku(YakuName::Rinshankaiho, 1, 1, menzen);
+            self.delete_yaku(YakuName::Haiteiraoyue);
         }
 
         if self.sanshokudojun() {
@@ -304,7 +391,26 @@ impl HoraCandidate {
         }
         if self.yaku_info.double_reach {
             self.add_yaku(YakuName::DoubleReach, 2, 0, menzen);
+            self.delete_yaku(YakuName::Reach);
         }
+
+        if self.honiso() {
+            self.add_yaku(YakuName::Honiso, 3, 2, menzen);
+        }
+        if self.junchantaiyao() {
+            self.add_yaku(YakuName::Junchantaiyao, 3, 2, menzen);
+            self.delete_yaku(YakuName::Honchantaiyao);
+        }
+        if self.ryanpeko() {
+            self.add_yaku(YakuName::Ryanpeko, 3, 0, menzen);
+            self.delete_yaku(YakuName::Ipeko);
+        }
+
+        if self.chiniso() {
+            self.add_yaku(YakuName::Chiniso, 6, 5, menzen);
+            self.delete_yaku(YakuName::Honiso);
+        }
+
     }
 
     fn add_yaku(&mut self, yaku_name: YakuName, menzen_fan: usize, kui_fan: usize, menzen: bool) {
@@ -328,8 +434,7 @@ impl HoraCandidate {
                 .iter()
                 .filter(|e| {
                     (e.mentsu_type == MentsuType::Kotsu && e.visibility == VisibilityType::An)
-                        || (e.mentsu_type == MentsuType::Kantsu
-                            && e.visibility == VisibilityType::An)
+                    || (e.mentsu_type == MentsuType::Kantsu && e.visibility == VisibilityType::An)
                 })
                 .count()
         } else {
@@ -353,7 +458,7 @@ impl HoraCandidate {
     }
 
     fn chinroto(&self) -> bool {
-        self.all_pais.iter().all(|e| e.number == 1 || e.number == 9)
+        self.all_pais.iter().all(|e| (e.number == 1 || e.number == 9) && e.pai_type != PaiType::JIHAI)
     }
 
     pub fn num_sangenpais(&self) -> usize {
@@ -383,22 +488,27 @@ impl HoraCandidate {
         }
     }
     fn churenpoton(&self) -> bool {
+        if !self.is_menzen() {
+            return false;
+        }
         let target_type = self.all_pais[0].pai_type;
         if !self.all_pais.iter().all(|x| x.pai_type == target_type) {
             return false;
         }
-
-        let all_num: Vec<usize> = self.all_pais.iter().map(|x| x.number).collect();
+        
+        let mut all_num: Vec<usize> = self.all_pais.iter().map(|x| x.number).collect();
+        all_num.sort();
+        println!("ap:{:?}", all_num);
         for compare in vec![
-            vec![4, 1, 1, 1, 1, 1, 1, 1, 3],
-            vec![3, 2, 1, 1, 1, 1, 1, 1, 3],
-            vec![3, 1, 2, 1, 1, 1, 1, 1, 3],
-            vec![3, 1, 1, 2, 1, 1, 1, 1, 3],
-            vec![3, 1, 1, 1, 2, 1, 1, 1, 3],
-            vec![3, 1, 1, 1, 1, 2, 1, 1, 3],
-            vec![3, 1, 1, 1, 1, 1, 2, 1, 3],
-            vec![3, 1, 1, 1, 1, 1, 1, 2, 3],
-            vec![3, 1, 1, 1, 1, 1, 1, 1, 4],
+            vec![1,1,1,1,2,3,4,5,6,7,8,9,9,9],
+            vec![1,1,1,2,2,3,4,5,6,7,8,9,9,9],
+            vec![1,1,1,2,3,3,4,5,6,7,8,9,9,9],
+            vec![1,1,1,2,3,4,4,5,6,7,8,9,9,9],
+            vec![1,1,1,2,3,4,5,5,6,7,8,9,9,9],
+            vec![1,1,1,2,3,4,5,6,6,7,8,9,9,9],
+            vec![1,1,1,2,3,4,5,6,7,7,8,9,9,9],
+            vec![1,1,1,2,3,4,5,6,7,8,8,9,9,9],
+            vec![1,1,1,2,3,4,5,6,7,8,9,9,9,9],
         ] {
             if all_num.iter().eq(compare.iter()) {
                 return true;
@@ -408,15 +518,21 @@ impl HoraCandidate {
     }
     fn pinfu(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus
-                .iter()
-                .filter(|x| x.mentsu_type == MentsuType::Syuntsu)
-                .count()
-                == 4
-                && c.head.pais[0].is_wind()
-        } else {
-            false
+            if let Some(m) = &self.machi {
+                match m {
+                    Machi::Ryanmen => {
+                            return c.mentsus
+                            .iter()
+                            .filter(|x| x.mentsu_type == MentsuType::Syuntsu)
+                            .count()
+                            == 4
+                            && self.fanpai_fan(c.head.pais[0]) == 0
+                    },
+                    _ => {}
+                }
+            }
         }
+        return false
     }
 
     fn tanyaochu(&self) -> bool {
@@ -425,12 +541,20 @@ impl HoraCandidate {
 
     fn ipeko(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            for i in &c.mentsus {
-                for j in &c.mentsus {
+            
+            for i in 0..c.mentsus.len() {
+                for j in 0..c.mentsus.len() {
                     if i == j {
                         continue;
                     }
-                    if i.pais[0].is_same_symbol(j.pais[0]) {
+                    if c.mentsus[i].mentsu_type != MentsuType::Syuntsu {
+                        continue
+                    }
+                    if c.mentsus[j].mentsu_type != MentsuType::Syuntsu {
+                        continue
+                    }
+                    // println!("{:?},{:?}", c.mentsus[i].pais[0], c.mentsus[j].pais[0]);
+                    if c.mentsus[i].pais[0].is_same_symbol(c.mentsus[j].pais[0]) {
                         return true;
                     }
                 }
@@ -443,10 +567,13 @@ impl HoraCandidate {
 
     fn bakaze(&self) -> bool {
         if let Combination::Normal(c) = &self.combination {
-            c.mentsus.iter().any(|x| {
-                (x.mentsu_type == MentsuType::Kantsu || x.mentsu_type == MentsuType::Kotsu)
-                    && x.pais[0].is_same_symbol(self.yaku_info.bakaze)
-            })
+            
+            for mentsu in &c.mentsus {
+                if mentsu.pais[0].is_same_symbol(self.yaku_info.bakaze) {
+                    return true;
+                }
+            }
+            false
         } else {
             false
         }
@@ -560,9 +687,10 @@ impl HoraCandidate {
                 .iter()
                 .all(|x| x.pais.iter().any(|p| p.is_yaochu()))
                 && c.head.pais.iter().any(|p| p.is_yaochu())
-        } else {
+        }else{
             false
         }
+        
     }
 
     fn toitoiho(&self) -> bool {
@@ -591,6 +719,83 @@ impl HoraCandidate {
             false
         }
     }
+
+    fn honiso(&self) -> bool {
+        for mps in vec![PaiType::MANZU, PaiType::PINZU, PaiType::SOUZU] {
+            if self.all_pais.iter().all(|x| x.pai_type == mps || x.pai_type == PaiType::JIHAI) {
+                return true;
+            }
+        }
+        false
+    }
+    
+    fn junchantaiyao(&self) -> bool {
+        if let Combination::Normal(c) = &self.combination {
+            if c.head.pais[0].pai_type == PaiType::JIHAI {
+                return false;
+            }
+            if !c.head.pais[0].is_yaochu() {
+                return false;
+            }
+
+            for mentsu in &c.mentsus {
+                if mentsu.pais
+                    .iter()
+                    .any(|x| (x.number == 1 || x.number == 9) 
+                        && !x.is_jihai())
+                    == false {
+                    return false;
+                }
+            }
+            return true;
+    
+        } else {
+            false
+        }
+        
+
+    }
+
+    fn ryanpeko(&self) -> bool {
+        
+        if let Combination::Normal(c) = &self.combination {
+            if c.mentsus
+                .iter()
+                .all(|x| x.mentsu_type == MentsuType::Syuntsu) 
+                == false {
+                return false
+            }
+            
+            for i in 0..c.mentsus.len() {
+                let mut ok = false;
+                for j in 0..c.mentsus.len() {
+                    if i == j {
+                        continue
+                    }
+                    let m1 = &c.mentsus[i];
+                    let m2 = &c.mentsus[j];
+
+                    if m1.pais[0].is_same_symbol(m2.pais[0]) {
+                        ok = true;
+                    }
+                }
+                if ok == false {
+                    return false;
+                }
+            }
+            return true;
+        }
+        false
+    }
+
+    fn chiniso(&self) -> bool {
+        if self.all_pais[0].is_jihai(){
+            return false;
+        }
+        let target_type = self.all_pais[0].pai_type;
+        self.all_pais.iter().all(|x| x.pai_type == target_type)
+    }
+
 
     fn fanpai_fan(&self, pai: Pai) -> usize {
         if pai.is_sangenpai() {

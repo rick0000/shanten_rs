@@ -104,32 +104,32 @@ fn cut(mut num_tehais: [usize; 34], mut furos: &Vec<Furo>) -> Vec<FixedHoraPatte
     }
 
     // append furos for all pattern.
-    let mut furo_mentsu = vec![];
+    let mut furo_mentsus = vec![];
     for furo in furos {
         match furo.furo_type {
             FuroType::ANKAN => {
-                furo_mentsu.push(Mentsu::new(
+                furo_mentsus.push(Mentsu::new_furo(
                     MentsuType::Kantsu,
                     VisibilityType::An,
                     furo.min_id,
                 ));
             }
             FuroType::CHI => {
-                furo_mentsu.push(Mentsu::new(
+                furo_mentsus.push(Mentsu::new_furo(
                     MentsuType::Syuntsu,
                     VisibilityType::Min,
                     furo.min_id,
                 ));
             }
             FuroType::DAIMINKAN | FuroType::KAKAN => {
-                furo_mentsu.push(Mentsu::new(
+                furo_mentsus.push(Mentsu::new_furo(
                     MentsuType::Kantsu,
                     VisibilityType::Min,
                     furo.min_id,
                 ));
             }
             FuroType::PON => {
-                furo_mentsu.push(Mentsu::new(
+                furo_mentsus.push(Mentsu::new_furo(
                     MentsuType::Kotsu,
                     VisibilityType::Min,
                     furo.min_id,
@@ -139,7 +139,7 @@ fn cut(mut num_tehais: [usize; 34], mut furos: &Vec<Furo>) -> Vec<FixedHoraPatte
     }
 
     for pattern in result_hora_patterns.iter_mut() {
-        pattern.add_furos(furo_mentsu.clone());
+        pattern.add_furos(furo_mentsus.clone());
     }
 
     result_hora_patterns
@@ -166,6 +166,9 @@ fn cut_mentsu(
 
     // cut syuntsu
     for i in start_id..27 {
+        if i % 9 >= 7 {
+            continue
+        }
         if num_tehais[i] >= 1 && num_tehais[i + 1] >= 1 && num_tehais[i + 2] >= 1 {
             num_tehais[i] -= 1;
             num_tehais[i + 1] -= 1;

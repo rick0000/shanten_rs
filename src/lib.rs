@@ -56,86 +56,126 @@ fn get_shanten_all(tehai: &PyList, furo_num: i8) -> [i8; 3] {
 #[pyfunction]
 /// calclate hora points for input.
 /// returns [fu, fan, points, oya_payment, ko_payment] 
-fn get_hora(tehai: &PyList, furos: &PyList, taken: &str) -> [i32;5] {    
-    assert_eq!(tehai.len() + furos.len()*3 , 13);
+fn get_hora(
+        tehai: &PyList, 
+        furos: &PyList, 
+        taken: &str,
+
+        oya: bool,
+        hora_type: &str,
+        first_turn: bool,
+        doras: Vec<&str>,
+        uradoras: Vec<&str>,
+        reach: bool,
+        double_reach: bool,
+        ippatsu: bool,
+        rinshan: bool,
+        chankan: bool,
+        haitei: bool,
+        bakaze: &str,
+        jikaze: &str,
+
+        show:bool
+
+    ) -> [u32;5] {    
+    // assert_eq!(tehai.len() + furos.len()*3 , 13);
     // println!("{:?}",tehai);
     let tehai_rs: Vec<&str> = tehai.as_ref().extract().unwrap();
     let converted_tehais = Pai::new_by_str_vec(tehai_rs);
-    let converted_furos:Vec<Furo> = convert_furo(furos);
+    let (converted_furos, furo_all_pais) = convert_furo(furos);
     let converted_taken = Pai::new_str(taken);
+    
+    
+    let mut all_pais = converted_tehais.clone();
+    all_pais.extend(furo_all_pais);
+    all_pais.push(converted_taken);
+    
 
-    let oya: bool = false;
-    let hora_type: HoraType = HoraType::Ron;
-    let first_turn: bool = false;
-    let doras: Vec<Pai> = vec![];
-    let uradoras: Vec<Pai> = vec![];
-    let reach: bool = false;
-    let double_reach: bool = false;
-    let ippatsu: bool = false;
-    let rinshan: bool = false;
-    let chankan: bool = false;
-    let haitei: bool = false;
-    let bakaze: Pai = Pai::new_str("E");
-    let jikaze: Pai = Pai::new_str("S");
+    let mut parsed_hora_type:HoraType = HoraType::Ron;
+    match hora_type {
+        "ron" => {parsed_hora_type = HoraType::Ron},
+        "tsumo" => {parsed_hora_type = HoraType::Tsumo},
+        _ => {},
+    }
+
+    let parsed_doras = Pai::new_by_str_vec(doras);
+    let parsed_uradoras = Pai::new_by_str_vec(uradoras);
+    let parased_bakaze = Pai::new_str(bakaze);
+    let parased_jikaze = Pai::new_str(jikaze);
+
     
     let hora = Hora::new(
         converted_tehais,
         converted_furos,
         converted_taken,
+        all_pais,
         oya,
-        hora_type,
+        parsed_hora_type,
         first_turn,
-        doras,
-        uradoras,
+        parsed_doras,
+        parsed_uradoras,
         reach,
         double_reach,
         ippatsu,
         rinshan,
         chankan,
         haitei,
-        bakaze,
-        jikaze,
+        parased_bakaze,
+        parased_jikaze,
     );
 
-    println!("{:?}",hora);
+    if show {
+        println!("{:?}", hora);
+        
+    }
+    
     let pointdatam = hora.get_pointdatam();
     [
-        pointdatam.fu as i32,
-        pointdatam.fan as i32,
+        pointdatam.fu,
+        pointdatam.fan,
         pointdatam.points,
         pointdatam.oya_payment,
         pointdatam.ko_payment,
     ]
 }
 
-fn convert_furo(furos: &PyList) -> Vec<Furo> {
-    // println!("{:?}",furos);
+fn convert_furo(furos: &PyList) -> (Vec<Furo>, Vec<Pai>) {
+    // println!("convert_furo:{:?}",furos);
     let mut furo_converted :Vec<Furo> = vec![];
-
+    let mut all_pais :Vec<Pai> = vec![];
+    
     if furos.len() > 0 {
-        let furos_rs:Vec<&PyDict> = furos.as_ref().extract().unwrap();
-        for f in &furos_rs {
-            let furo_type_parsed_result:PyResult<&str> = FromPyObject::extract(f.get_item("type").unwrap());
-            let furo_type_parsed:&str = furo_type_parsed_result.ok().unwrap();
-
-            let mut furo_taken:Option<Pai> = None;
-            if let Some(taken_value) = f.get_item("taken") {
-                let taken_value_parsed:PyResult<&str> = FromPyObject::extract(taken_value);
-                if let Ok(pai_str) = taken_value_parsed {
-                    furo_taken = Some(Pai::new_str(pai_str));
+        let furos_rs_result:PyResult<Vec<&PyDict>> = furos.as_ref().extract();
+        if let Ok(furos_rs) = furos_rs_result {
+            for f in &furos_rs {
+                if let Some(type_value) = f.get_item("type") {
+                    let furo_type_parsed_result:PyResult<&str> = FromPyObject::extract(type_value);
+                    if let Ok(furo_type_parsed) = furo_type_parsed_result {
+    
+                        let mut furo_taken:Option<Pai> = None;
+                        if let Some(taken_value) = f.get_item("taken") {
+                            let taken_value_parsed:PyResult<&str> = FromPyObject::extract(taken_value);
+                            if let Ok(pai_str) = taken_value_parsed {
+                                furo_taken = Some(Pai::new_str(pai_str));
+                                all_pais.push(Pai::new_str(pai_str));
+                            }
+                        }
+                        let consumed_pais_str:Vec<&str> = f.get_item("consumed").unwrap().extract().unwrap();
+                        let consumed_pais:Vec<Pai> = Pai::new_by_str_vec(consumed_pais_str.clone()); 
+                        all_pais.extend(Pai::new_by_str_vec(consumed_pais_str));
+                        let furo:Furo = Furo::new(
+                            convert_furo_type(furo_type_parsed),
+                            furo_taken,
+                            consumed_pais,
+                        );
+                        furo_converted.push(furo);
+    
+                    }
                 }
             }
-            let consumed_pais_str:Vec<&str> = f.get_item("consumed").unwrap().extract().unwrap();
-            let consumed_pais:Vec<Pai> = Pai::new_by_str_vec(consumed_pais_str); 
-            let furo:Furo = Furo::new(
-                convert_furo_type(furo_type_parsed),
-                furo_taken,
-                consumed_pais,
-            );
-            furo_converted.push(furo);
         }
     }
-    furo_converted
+    (furo_converted, all_pais)
 }
 
 fn convert_furo_type(furo_type: &str) -> FuroType {

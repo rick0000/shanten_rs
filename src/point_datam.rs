@@ -9,20 +9,20 @@ pub struct PointDatam {
     pub fan: u32,
     pub oya: bool,
     pub hora_type: HoraType,
-    pub base_points: i32,
-    pub points: i32,
-    pub oya_payment: i32,
-    pub ko_payment: i32,
+    pub base_points: u32,
+    pub points: u32,
+    pub oya_payment: u32,
+    pub ko_payment: u32,
 }
 
 impl PointDatam {
 
     pub fn new(fu: u32, fan: u32, oya: bool, hora_type: HoraType) -> Self {
-        let mut base_points: i32;
+        let mut base_points: u32;
     
         match fan {
             YAKUMAN_FAN..=u32::MAX => {
-                base_points = 8000 * (fan / YAKUMAN_FAN) as i32;
+                base_points = 8000 * (fan / YAKUMAN_FAN);
             }
             13..=KAZOE_YAKUMAN_FAN_MAX => {
                 base_points = 8000;
@@ -40,14 +40,14 @@ impl PointDatam {
                 base_points = 2000;
             }
             _ => {
-                base_points = (fu * u32::pow(2, fan + 2)) as i32;
+                base_points = (fu * u32::pow(2, fan + 2));
                 base_points = std::cmp::min(base_points, 2000);
             }
         };
-        let multiple: i32;
-        let points: i32;
-        let oya_payment: i32;
-        let ko_payment: i32;
+        let multiple: u32;
+        let points: u32;
+        let oya_payment: u32;
+        let ko_payment: u32;
 
         if hora_type == HoraType::Ron {
             if oya {
@@ -83,6 +83,6 @@ impl PointDatam {
     }
 }
 
-fn ceil_points(point: i32) -> i32 {
-    (point / 100) * 100
+fn ceil_points(point: u32) -> u32 {
+    f32::ceil(point as f32 / 100.0) as u32 * 100 
 }
