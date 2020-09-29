@@ -69,13 +69,11 @@ for i,mjson_path in enumerate(mjson_paths):
 
             if line["type"] == "reach_accepted":
                 ippatsus[line["actor"]] = True
-                
 
             if line["type"] == "reach":
                 reachs[line["actor"]] = True
                 if first_turns[line["actor"]]:
                     double_reachs[line["actor"]] = True
-
 
             # furo update
             if line["type"] in ["chi", "pon", "daiminkan"]:

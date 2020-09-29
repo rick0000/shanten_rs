@@ -76,8 +76,8 @@ fn get_hora(
         jikaze: &str,
 
         show:bool
-
-    ) -> [u32;5] {    
+    ) -> ([u32;5], Vec<(String,usize)>) {
+    // ) -> [u32;5] {    
     // assert_eq!(tehai.len() + furos.len()*3 , 13);
     // println!("{:?}",tehai);
     let tehai_rs: Vec<&str> = tehai.as_ref().extract().unwrap();
@@ -130,13 +130,28 @@ fn get_hora(
     }
     
     let pointdatam = hora.get_pointdatam();
-    [
+    let result = [
         pointdatam.fu,
         pointdatam.fan,
         pointdatam.points,
         pointdatam.oya_payment,
         pointdatam.ko_payment,
-    ]
+    ];
+    let mut yaku_fan_tuple_vec:Vec<(String,usize)> = vec![];
+    let yakus = hora.get_yaku_fans();
+    for yaku in &yakus {
+        let name = yaku.yaku_name.name().to_string();
+        yaku_fan_tuple_vec.push((name, yaku.fan));
+    }
+    
+
+    (result, yaku_fan_tuple_vec)
+}
+
+#[pyfunction]
+fn check_memleak() -> Vec<String> {
+    let mut s = ["A","B","C"];
+    s.iter().map(|x| x.to_string()).collect()
 }
 
 fn convert_furo(furos: &PyList) -> (Vec<Furo>, Vec<Pai>) {

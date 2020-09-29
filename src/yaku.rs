@@ -60,7 +60,7 @@ pub enum YakuName {
 }
 
 impl YakuName {
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         match *self {
             YakuName::Tenho => "tenho",
             YakuName::Chiho => "chiho",

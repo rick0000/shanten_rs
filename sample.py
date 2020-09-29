@@ -107,6 +107,25 @@ def test_hora_easy():
     print(result)
 
 
+def check_memleak():
+    import time
+    import collections
+    import gc
+    for _ in range(10):
+        print("append")
 
+        r = collections.deque()
+        for i in range(10000000):
+            a = shanten.check_memleak()
+            # time.sleep(0.1)
+            r.append(a)
+        print("clear")
+        r.clear()
+        print("sleep")
+        gc.collect()
+        time.sleep(2)
+        
+        
 
 test_hora_easy()
+# check_memleak()

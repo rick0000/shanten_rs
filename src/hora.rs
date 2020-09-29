@@ -200,6 +200,10 @@ impl Hora {
     pub fn get_pointdatam(&self) -> PointDatam {
         self.best_candidate.get_pointdatam()
     }
+
+    pub fn get_yaku_fans(&self) -> Vec<Yaku> {
+        self.best_candidate.yakus.clone()
+    }
 }
 
 #[cfg(test)]
