@@ -65,6 +65,7 @@ def test_hora_with_bug():
 
 def test_hora_easy():
 
+    show = True
     # tehais = ["4m","5m","6m","7m","8m","9m","1p"]
     tehais = ["5p","6p","6p","7p","7p","8p","9p","9p","1s","2s","3s","6s","7s"]
     furos = [
@@ -103,10 +104,30 @@ def test_hora_easy():
             haitei,
             bakaze,
             jikaze,
+            show,
         )
     print(result)
 
 
+def check_memleak():
+    import time
+    import collections
+    import gc
+    for _ in range(10):
+        print("append")
 
+        r = collections.deque()
+        for i in range(10000000):
+            a = shanten.check_memleak()
+            # time.sleep(0.1)
+            r.append(a)
+        print("clear")
+        r.clear()
+        print("sleep")
+        gc.collect()
+        time.sleep(2)
+        
+        
 
-test_hora_easy()
+# test_hora_easy()
+check_memleak()

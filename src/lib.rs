@@ -1,7 +1,9 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyDict, PyString};
 use pyo3::wrap_pyfunction;
+use pyo3::types::IntoPyDict;
 
+use std::collections::HashMap;
 mod dfs;
 mod furo;
 mod hora;
@@ -57,6 +59,7 @@ fn get_shanten_all(tehai: &PyList, furo_num: i8) -> [i8; 3] {
 /// calclate hora points for input.
 /// returns [fu, fan, points, oya_payment, ko_payment] 
 fn get_hora(
+        py: Python,
         tehai: &PyList, 
         furos: &PyList, 
         taken: &str,
@@ -74,10 +77,9 @@ fn get_hora(
         haitei: bool,
         bakaze: &str,
         jikaze: &str,
-
         show:bool
-
-    ) -> [u32;5] {    
+    ) -> ([u32;5], String) {
+    // ) -> [u32;5] {    
     // assert_eq!(tehai.len() + furos.len()*3 , 13);
     // println!("{:?}",tehai);
     let tehai_rs: Vec<&str> = tehai.as_ref().extract().unwrap();
@@ -130,13 +132,20 @@ fn get_hora(
     }
     
     let pointdatam = hora.get_pointdatam();
-    [
+    let result = [
         pointdatam.fu,
         pointdatam.fan,
         pointdatam.points,
         pointdatam.oya_payment,
         pointdatam.ko_payment,
-    ]
+    ];
+    (result, "aaa".to_string())
+}
+
+#[pyfunction]
+fn check_memleak() -> Vec<String> {
+    let mut s = ["A","B","C"];
+    s.iter().map(|x| x.to_string()).collect()
 }
 
 fn convert_furo(furos: &PyList) -> (Vec<Furo>, Vec<Pai>) {
@@ -195,5 +204,6 @@ fn shanten(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(get_shanten))?;
     m.add_wrapped(wrap_pyfunction!(get_shanten_all))?;
     m.add_wrapped(wrap_pyfunction!(get_hora))?;
+    m.add_wrapped(wrap_pyfunction!(check_memleak))?;
     Ok(())
 }
