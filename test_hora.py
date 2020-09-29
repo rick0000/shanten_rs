@@ -7,14 +7,11 @@ import shanten
 import datetime
 from pathlib import Path
 
-mjson_paths = Path("/data/mjson/train").glob("**/*.mjson")
-
+mjson_paths = Path("/data/").glob("**/*.mjson")
 show = False
 
 for i,mjson_path in enumerate(mjson_paths):
-    if i < 177495:
-        continue
-
+    
     print(mjson_path)
     print(datetime.datetime.now(), f"{i}")
     mjson = Mjson.load(mjson_path)

@@ -65,6 +65,7 @@ def test_hora_with_bug():
 
 def test_hora_easy():
 
+    show = True
     # tehais = ["4m","5m","6m","7m","8m","9m","1p"]
     tehais = ["5p","6p","6p","7p","7p","8p","9p","9p","1s","2s","3s","6s","7s"]
     furos = [
@@ -103,6 +104,7 @@ def test_hora_easy():
             haitei,
             bakaze,
             jikaze,
+            show,
         )
     print(result)
 
@@ -127,5 +129,5 @@ def check_memleak():
         
         
 
-test_hora_easy()
-# check_memleak()
+# test_hora_easy()
+check_memleak()
