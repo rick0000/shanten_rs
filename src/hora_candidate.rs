@@ -1,7 +1,7 @@
 use crate::furo::{Furo, FuroType};
 use crate::mentsu::{Mentsu, MentsuType, VisibilityType};
 use crate::pai::{Pai, PaiType};
-use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType, calc_combination};
+use crate::tenpai_analysis::{Combination, FixedHoraPattern, HoraType};
 use crate::yaku::{Yaku, YakuName};
 use crate::point_datam::PointDatam;
 
@@ -108,6 +108,7 @@ impl HoraCandidate {
     pub fn get_points(&self) -> u32 {
         self.points.points
     }
+
     pub fn get_pointdatam(&self) -> PointDatam {
         self.points.clone()
     }
@@ -117,9 +118,7 @@ impl HoraCandidate {
         combination: Combination,
         taken_position: Option<TakenPosition>,
     ) -> Combination {
-        let mut fixed_combination = combination.clone();
-
-        if let (Combination::Normal(c), Some(pos)) = (combination, taken_position) {
+        if let (Combination::Normal(c), Some(pos)) = (combination.clone(), taken_position) {
             let mut pattern:FixedHoraPattern = c.clone();
             match pos {
                 TakenPosition::Mentsu(mentsu_index) => {
@@ -132,7 +131,8 @@ impl HoraCandidate {
                 }
             }
         }
-        fixed_combination
+
+        combination.clone()
     }
 
     fn get_machi(
@@ -419,7 +419,7 @@ impl HoraCandidate {
                 self.yakus.push(Yaku::new(yaku_name, menzen_fan));
             }
         } else {
-            if kui_fan > 0{
+            if kui_fan > 0 {
                 self.yakus.push(Yaku::new(yaku_name, kui_fan));
             }
         }
@@ -498,7 +498,7 @@ impl HoraCandidate {
         
         let mut all_num: Vec<usize> = self.all_pais.iter().map(|x| x.number).collect();
         all_num.sort();
-        println!("ap:{:?}", all_num);
+        // println!("ap:{:?}", all_num);
         for compare in vec![
             vec![1,1,1,1,2,3,4,5,6,7,8,9,9,9],
             vec![1,1,1,2,2,3,4,5,6,7,8,9,9,9],
@@ -992,7 +992,7 @@ mod test {
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
 
-        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
+        let candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
 
         assert!(candidate
             .yakus
@@ -1031,7 +1031,7 @@ mod test {
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
 
-        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
+        let candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
 
         assert!(
             candidate
@@ -1072,7 +1072,7 @@ mod test {
         let pattern = FixedHoraPattern::new(head, mentsus);
         let combination = Combination::Normal(pattern);
 
-        let mut candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
+        let candidate = get_hora_candidate(taken, all_pais, furos, combination, taken_position);
 
         assert!(candidate
             .yakus

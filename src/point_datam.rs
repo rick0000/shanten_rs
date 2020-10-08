@@ -40,7 +40,7 @@ impl PointDatam {
                 base_points = 2000;
             }
             _ => {
-                base_points = (fu * u32::pow(2, fan + 2));
+                base_points = fu * u32::pow(2, fan + 2);
                 base_points = std::cmp::min(base_points, 2000);
             }
         };

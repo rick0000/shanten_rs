@@ -1,6 +1,8 @@
 import shanten
 import datetime
 
+from memory_profiler import profile
+
 def test_shanten():
     result = shanten.get_shanten([
             4,4,4,2,0,0,0,0,0,
@@ -21,55 +23,15 @@ def test_shanten():
     print(result)
 
 
-def test_hora_with_bug():
-    
-    tehais = ["1m", "2m", "3m", "5m", "6m", "6m", "7m", "8m", "2p", "3p", "4p", "2s", "2s"]
-    furos = []
-    taken = "7m"
-
-    oya = True
-    hora_type = "ron"
-    first_turn = False
-    doras = ["1m"]
-    uradoras = []
-    reach = False
-    double_reach = False
-    ippatsu = False
-    rinshan = False
-    chankan = False
-    haitei = False
-    bakaze = "E"
-    jikaze = "S"
-    result = shanten.get_hora(
-            tehais,
-            furos,
-            taken,
-            oya,
-            hora_type,
-            first_turn,
-            doras,
-            uradoras,
-            reach,
-            double_reach,
-            ippatsu,
-            rinshan,
-            chankan,
-            haitei,
-            bakaze,
-            jikaze,
-        )
-    print(result)
 
 
-
-
-def test_hora_easy():
-
+# @profile
+def test_hora():
     show = True
     # tehais = ["4m","5m","6m","7m","8m","9m","1p"]
-    tehais = ["5p","6p","6p","7p","7p","8p","9p","9p","1s","2s","3s","6s","7s"]
+    tehais = ["6p","7p","8p","9p","9p","6s","7s", "E","N","N"]
     furos = [
-        # {"type":"chi", "taken":"5sr", "consumed":["4s", "6s"]},
+        {"type":"chi", "taken":"5s", "consumed":["4s", "6s"]},
         # {"type":"pon","taken":"S","consumed":["S","S"]},
     ]
     taken = "5s"
@@ -87,7 +49,8 @@ def test_hora_easy():
     haitei = False
     bakaze = "E"
     jikaze = "S"
-    result = shanten.get_hora(
+    try:
+        result = shanten.get_hora(
             tehais,
             furos,
             taken,
@@ -106,8 +69,12 @@ def test_hora_easy():
             jikaze,
             show,
         )
+    except:
+        print("Exception occered!")
     print(result)
-
+    yakus = result[1]
+    for yaku in yakus:
+        print(yaku)
 
 def check_memleak():
     import time
@@ -129,5 +96,5 @@ def check_memleak():
         
         
 
-# test_hora_easy()
-check_memleak()
+test_hora()
+# check_memleak()

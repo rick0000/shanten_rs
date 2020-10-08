@@ -1,9 +1,7 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyDict, PyString};
+use pyo3::types::{PyList, PyDict};
 use pyo3::wrap_pyfunction;
-use pyo3::types::IntoPyDict;
 
-use std::collections::HashMap;
 mod dfs;
 mod furo;
 mod hora;
@@ -150,11 +148,6 @@ fn get_hora(
     (result, yaku_fan_tuple_vec)
 }
 
-#[pyfunction]
-fn check_memleak() -> Vec<String> {
-    let mut s = ["A","B","C"];
-    s.iter().map(|x| x.to_string()).collect()
-}
 
 fn convert_furo(furos: &PyList) -> (Vec<Furo>, Vec<Pai>) {
     // println!("convert_furo:{:?}",furos);
@@ -212,7 +205,6 @@ fn shanten(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(get_shanten))?;
     m.add_wrapped(wrap_pyfunction!(get_shanten_all))?;
     m.add_wrapped(wrap_pyfunction!(get_hora))?;
-    m.add_wrapped(wrap_pyfunction!(check_memleak))?;
     Ok(())
 }
 

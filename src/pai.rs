@@ -96,9 +96,7 @@ impl Pai {
     pub fn is_jihai(&self) -> bool {
         self.pai_type == PaiType::JIHAI
     }
-    pub fn is_number(&self) -> bool {
-        self.pai_type != PaiType::JIHAI
-    }
+
     pub fn is_yaochu(&self) -> bool {
         self.number == 1 || self.number == 9 || self.pai_type == PaiType::JIHAI
     }

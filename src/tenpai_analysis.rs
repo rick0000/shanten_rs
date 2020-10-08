@@ -7,15 +7,8 @@ use crate::shanten_analysis::calc_all;
 ///
 ///
 ///
-use std::fmt;
 
-pub enum WaitingType {
-    Tanki,
-    Kanchan,
-    Penchan,
-    Ryanmen,
-    Shanpon,
-}
+
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct HoraPattern {
@@ -89,13 +82,13 @@ pub fn calc_combination(taken: Pai, tehais: &Vec<Pai>, furos: &Vec<Furo>) -> Vec
     combinations
 }
 
-fn cut(mut num_tehais: [usize; 34], mut furos: &Vec<Furo>) -> Vec<FixedHoraPattern> {
+fn cut(mut num_tehais: [usize; 34], furos: &Vec<Furo>) -> Vec<FixedHoraPattern> {
     let mut result_hora_patterns = vec![];
 
     for i in 0..34 {
         if num_tehais[i] >= 2 {
             num_tehais[i] -= 2;
-            let mut current_hora_pattern =
+            let current_hora_pattern =
                 FixedHoraPattern::new(Mentsu::new(MentsuType::Head, VisibilityType::An, i), vec![]);
             // println!("head found:{:?}", i);
             result_hora_patterns.extend(cut_mentsu(num_tehais, current_hora_pattern, vec![], 0));
@@ -235,19 +228,16 @@ mod tests {
         let tehais = Pai::new_by_str_vec(vec![
             "2m", "2m", "2m", "2m", "3m", "3m", "3m", "3m", "4m", "4m", "4m", "4m", "5m",
         ]);
-        let mut taken = Pai::new_str("1m");
+        let taken = Pai::new_str("1m");
         let furos = vec![];
 
         let _combinations = calc_combination(taken, &tehais, &furos);
         let start = Instant::now();
 
-        let mut taken = Pai::new_str("5m");
-
         let loop_num = 1000;
         for _ in 0..loop_num {
-            let combinations = calc_combination(taken, &tehais, &furos);
+            let _ = calc_combination(taken, &tehais, &furos);
         }
-
         let end = start.elapsed();
 
         println!(

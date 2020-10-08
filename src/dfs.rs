@@ -161,35 +161,7 @@ fn calc_dfs_14(tehai: &[usize; 34], furos: Vec<Furo>, depth: i8) -> i8 {
     i8mod
 }
 
-fn dfs_chunk(tehai: &[usize; 34], depth: i8) {
-    // 現在のシャンテン数計算
-    assert!(tehai.iter().sum::<usize>() == 14);
-    let furo_num = (14 - tehai.iter().sum::<usize>() as i8) / 3;
-    let current_shanten = calc(tehai, furo_num);
-    println!("current_shanten:{}", current_shanten);
 
-    // free pais、head、mentsuの組み合わせを探索する。
-    // depthが2未満の場合、free pais 2 の探索を行い和了手牌を列挙する。
-
-    // depthが2の場合、head1 & freepais0,
-    // head0, freepais2の探索を行う。
-
-    // free pais 2 のパターンは加えるだけで良い？はい。
-    // これでかなり高速化するのでは？
-    // 34*34固定になるけどね。
-    //
-
-    let free_pai_num = depth % 3;
-
-    // パターンに加えて、追加牌を定義できる。
-    // →役判定のときに追加牌を最後のツモ牌とすることが可能。
-
-    // B tehai中にヘッドなしの場合パス
-    // ヘッド作成パターンの列挙
-    // 追加分%3枚でメンツができるパターンを列挙
-
-    println!("{}", free_pai_num);
-}
 
 fn cut_mentsu(
     mut tehai: [usize; 34],
@@ -307,9 +279,13 @@ mod tests {
         let shanten = calc(&tehai, 0);
         println!("initial shanten:{}", shanten);
         let start = Instant::now();
-        let furos = vec![];
-        let a = calc_dfs_14(&tehai, furos, 2);
-        assert!(a != 1);
+        
+
+        for _ in 0..1 {
+            let furos = vec![];
+            let a = calc_dfs_14(&tehai, furos, 3);
+            assert!(a != 1);
+        }
         let end = start.elapsed();
         println!(
             "passed {}.{:03}sec",
@@ -321,8 +297,8 @@ mod tests {
     #[test]
     fn test_cut_mentsu() {
         let tehai = get_tehai();
-        let mut current_hora_pattern = HoraPattern::new();
-        let mut result_hora_patterns = Vec::new();
+        let current_hora_pattern = HoraPattern::new();
+        let result_hora_patterns = Vec::new();
         let result = cut_mentsu(
             tehai,
             0,

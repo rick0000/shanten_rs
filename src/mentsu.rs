@@ -63,9 +63,7 @@ impl Mentsu {
     pub fn change_to_visible(&mut self){
         self.visibility = VisibilityType::Min;
     }
-    pub fn change_to_furo_mentsu(&mut self){
-        self.is_furo = true;
-    }
+
 }
 
 impl fmt::Debug for Mentsu {
